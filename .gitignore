@@ -1,0 +1,8 @@
+# Build Folder
+.build/
+
+# Vim swap files
+*.swp
+
+# Executable Binary
+tictactoe
