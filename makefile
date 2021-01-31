@@ -1,5 +1,5 @@
-tictactoe: .build/main.o .build/game.o
-	gcc .build/main.o .build/game.o -o tictactoe
+tictactoe: .build/main.o .build/game.o .build/ui.o
+	gcc .build/main.o .build/game.o .build/ui.o -o tictactoe
 
 run: build
 	./tictactoe
@@ -9,6 +9,9 @@ run: build
 
 .build/game.o: .build src/game.c
 	gcc -c src/game.c -o .build/game.o
+
+.build/ui.o: .build src/ui.c src/def.h
+	gcc -c src/ui.c -o .build/ui.o
 
 .build:
 	mkdir .build

@@ -1,3 +1,6 @@
+#ifndef _GAME_H_
+#define _GAME_H_
+
 #include <stdbool.h>
 
 /********************************************************************************
@@ -35,3 +38,5 @@ bool boardCellValid(struct BoardCell* cell);
 bool gameIsEmptyCell(struct Game* game, struct BoardCell* cell);
 bool gameIsOver(struct Game* game);
 void gameInit(struct Game* game);
+
+#endif
