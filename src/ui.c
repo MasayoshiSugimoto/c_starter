@@ -5,12 +5,8 @@
 * UI
 ********************************************************************************/
 
-void uiInit(struct UI* ui) {
-	ui->notification = "";
-	ui->screen = UI_SCREEN_START;
-}
 
-void uiPlayScreen(struct UI* ui, const char* board) {
+void uiPlayScreen(struct Controller* controller, const char* board) {
 	printf(
 		"TICTACTOE\n"
 		"=========\n"
@@ -27,6 +23,6 @@ void uiPlayScreen(struct UI* ui, const char* board) {
 		"\n"
 		"Type a letter and type <ENTER>:\n",
 		board,
-		ui->notification
+		controller->notification
 	);
 }

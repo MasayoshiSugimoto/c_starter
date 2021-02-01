@@ -27,7 +27,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 -include $(DEPS)
 
-.PHONY: clean build try run
+.PHONY: clean build try run tags
 
 clean:
 	@rm -rf .build
@@ -40,4 +40,7 @@ run: build
 
 try:
 	$(info $(OBJS))
+
+tags:
+	@find src | xargs ctags 
 

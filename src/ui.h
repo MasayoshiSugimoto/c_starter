@@ -1,22 +1,12 @@
 #ifndef _UI_H_
 #define _UI_H_
 
-#include "game.h"
+#include "controller.h"
 
 /********************************************************************************
 * UI
 ********************************************************************************/
 
-enum UIScreen {
-	UI_SCREEN_START,
-};
-
-struct UI {
-	char* notification;	
-	enum UIScreen screen;
-};
-
-void uiPlayScreen(struct UI* ui, const char* board);
-void uiInit(struct UI* ui);
+void uiPlayScreen(struct Controller* ui, const char* board);
 
 #endif

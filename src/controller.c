@@ -1,9 +1,15 @@
-#include "ui.h"
-#include "game.h"
+#include "controller.h"
 #include "def.h"
+#include "game.h"
+#include "ui.h"
 #include <stdio.h>
 
-void playScreen(struct UI* ui, struct Game* game) {
+void init(struct Controller* ui) {
+	ui->notification = "";
+	ui->screen = SCREEN_START;
+}
+
+void playScreen(struct Controller* ui, struct Game* game) {
 	char buf[BUFF_SMALL_SIZE];
 	gameBoardAsString(buf, game);
 	uiPlayScreen(ui, buf);
@@ -34,16 +40,16 @@ void controllerStart() {
 	struct Game game;
 	gameInit(&game);
 
-	struct UI ui;
-	uiInit(&ui);
+	struct Controller controller;
+	init(&controller);
 
 	while (true) {
-		switch (ui.screen) {
-			case UI_SCREEN_START:
-				playScreen(&ui, &game);
+		switch (controller.screen) {
+			case SCREEN_START:
+				playScreen(&controller, &game);
 				break;
 			default:
-				playScreen(&ui, &game);
+				playScreen(&controller, &game);
 		}
 	}
 }
