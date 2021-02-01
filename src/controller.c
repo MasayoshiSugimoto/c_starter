@@ -4,33 +4,33 @@
 #include "ui.h"
 #include <stdio.h>
 
-void init(struct Controller* ui) {
-	ui->notification = "";
-	ui->screen = SCREEN_START;
+void init(struct Controller* controller) {
+	controller->notification = "";
+	controller->screen = SCREEN_START;
 }
 
-void playScreen(struct Controller* ui, struct Game* game) {
+void playScreen(struct Controller* controller, struct Game* game) {
 	char buf[BUFF_SMALL_SIZE];
 	gameBoardAsString(buf, game);
-	uiPlayScreen(ui, buf);
+	uiPlayScreen(controller->notification, buf);
 
 	char c;
 	int nbMatch = scanf(" %c", &c);
 	if (nbMatch != 1) {
-		ui->notification = "Invalid input.";
+		controller->notification = "Invalid input.";
 		return;
 	}
 
 	struct BoardCell cell = gameGetBoardCell(c);
 	if (!boardCellValid(&cell) || gameIsEmptyCell(game, &cell)) {
-		ui->notification = "Invalid input.";
+		controller->notification = "Invalid input.";
 		return;
 	}
 
 	gamePlay(game, &cell);
 
 	if (gameIsOver(game)) {
-		ui->notification = "GAME OVER";
+		controller->notification = "GAME OVER";
 		return;
 	}
 

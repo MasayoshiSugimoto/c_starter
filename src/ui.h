@@ -7,6 +7,6 @@
 * UI
 ********************************************************************************/
 
-void uiPlayScreen(struct Controller* ui, const char* board);
+void uiPlayScreen(const char* notification, const char* board);
 
 #endif

@@ -6,7 +6,7 @@
 ********************************************************************************/
 
 
-void uiPlayScreen(struct Controller* controller, const char* board) {
+void uiPlayScreen(const char* notification, const char* board) {
 	printf(
 		"TICTACTOE\n"
 		"=========\n"
@@ -23,6 +23,6 @@ void uiPlayScreen(struct Controller* controller, const char* board) {
 		"\n"
 		"Type a letter and type <ENTER>:\n",
 		board,
-		controller->notification
+		notification
 	);
 }
