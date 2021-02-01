@@ -1,25 +1,43 @@
-tictactoe: .build/main.o .build/game.o .build/ui.o
-	gcc .build/main.o .build/game.o .build/ui.o -o tictactoe
+CC = gcc
+CFLAGS = -g
+DEP_OPT = -MM -MP
+SRC_DIR = src
+BUILD_DIR = .build
+SOURCES = $(foreach d, $(SRC_DIR), $(wildcard $(addprefix $(d)/*, .c)))
+DEPS = $(subst $(SRC_DIR), $(BUILD_DIR), $(SOURCES:.c=.d))
+OBJS = $(subst $(SRC_DIR), $(BUILD_DIR), $(SOURCES:.c=.o))
+PROGRAM = tictactoe
 
-run: build
-	./tictactoe
+# Delete the default suffixes
+.SUFFIXES:
 
-.build/main.o: .build src/main.c src/game.h
-	gcc -c src/main.c -o .build/main.o
-
-.build/game.o: .build src/game.c
-	gcc -c src/game.c -o .build/game.o
-
-.build/ui.o: .build src/ui.c src/def.h
-	gcc -c src/ui.c -o .build/ui.o
+$(PROGRAM): $(OBJS)
+	@$(CC) $? -o $@
 
 .build:
-	mkdir .build
+	@mkdir .build
 
-.PHONY: clean build
+# Generate dependence files
+$(BUILD_DIR)/%.d: $(SRC_DIR)/%.c $(BUILD_DIR)
+	@$(CC) $(DEP_OPT) $< | sed -E 's;^(.*)\.o:;$(BUILD_DIR)/\1.o:;' > $@
+
+# Generate objects files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+-include $(DEPS)
+
+.PHONY: clean build try run
 
 clean:
-	rm -rf .build
+	@rm -rf .build
+	@rm $(PROGRAM)
 
-build: tictactoe
+build: $(PROGRAM)
+
+try:
+	$(info $(DEPS))
+	
+run: build
+	@./$(PROGRAM)
 
