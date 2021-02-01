@@ -35,9 +35,9 @@ clean:
 
 build: $(PROGRAM)
 
-try:
-	$(info $(DEPS))
-	
 run: build
 	@./$(PROGRAM)
+
+try:
+	$(info $(OBJS))
 

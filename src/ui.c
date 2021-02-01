@@ -32,25 +32,5 @@ void uiPlayScreen(struct UI* ui, struct Game* game) {
 		buf,
 		ui->notification
 	);
-
-	char c;
-	int nbMatch = scanf(" %c", &c);
-	if (nbMatch != 1) {
-		ui->notification = "Invalid input.";
-		return;
-	}
-
-	struct BoardCell cell = gameGetBoardCell(c);
-	if (!boardCellValid(&cell) || gameIsEmptyCell(game, &cell)) {
-		ui->notification = "Invalid input.";
-		return;
-	}
-
-	gamePlay(game, &cell);
-
-	if (gameIsOver(game)) {
-		ui->notification = "GAME OVER";
-		return;
-	}
 }
 
