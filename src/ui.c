@@ -1,4 +1,3 @@
-#include "def.h"
 #include "ui.h"
 #include <stdio.h>
 
@@ -11,9 +10,7 @@ void uiInit(struct UI* ui) {
 	ui->screen = UI_SCREEN_START;
 }
 
-void uiPlayScreen(struct UI* ui, struct Game* game) {
-	char buf[BUFF_SMALL_SIZE];
-	gameBoardAsString(buf, game);
+void uiPlayScreen(struct UI* ui, const char* board) {
 	printf(
 		"TICTACTOE\n"
 		"=========\n"
@@ -29,8 +26,7 @@ void uiPlayScreen(struct UI* ui, struct Game* game) {
 		"--------------------\n"
 		"\n"
 		"Type a letter and type <ENTER>:\n",
-		buf,
+		board,
 		ui->notification
 	);
 }
-

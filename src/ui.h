@@ -16,7 +16,7 @@ struct UI {
 	enum UIScreen screen;
 };
 
-void uiPlayScreen(struct UI* ui, struct Game* game);
+void uiPlayScreen(struct UI* ui, const char* board);
 void uiInit(struct UI* ui);
 
 #endif

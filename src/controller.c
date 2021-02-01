@@ -1,9 +1,12 @@
 #include "ui.h"
 #include "game.h"
+#include "def.h"
 #include <stdio.h>
 
 void playScreen(struct UI* ui, struct Game* game) {
-	uiPlayScreen(ui, game);
+	char buf[BUFF_SMALL_SIZE];
+	gameBoardAsString(buf, game);
+	uiPlayScreen(ui, buf);
 
 	char c;
 	int nbMatch = scanf(" %c", &c);
