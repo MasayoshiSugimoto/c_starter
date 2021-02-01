@@ -12,35 +12,35 @@ PROGRAM = tictactoe
 .SUFFIXES:
 
 $(PROGRAM): $(OBJS)
-	@$(CC) $(CFLAGS) $? -o $@
+	$(CC) $(CFLAGS) $? -o $@
 
 .build:
-	@mkdir .build
+	mkdir .build
 
 # Generate dependence files
 $(BUILD_DIR)/%.d: $(SRC_DIR)/%.c $(BUILD_DIR)
-	@$(CC) $(DEP_OPT) $< | sed -E 's;^(.*)\.o:;$(BUILD_DIR)/\1.o:;' > $@
+	$(CC) $(DEP_OPT) $< | sed -E 's;^(.*)\.o:;$(BUILD_DIR)/\1.o:;' > $@
 
 # Generate objects files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEPS)
 
 .PHONY: clean build try run tags
 
 clean:
-	@rm -rf .build
-	@rm $(PROGRAM)
+	rm -rf .build
+	rm $(PROGRAM)
 
 build: $(PROGRAM)
 
 run: build
-	@./$(PROGRAM)
+	./$(PROGRAM)
 
 try:
 	$(info $(OBJS))
 
 tags:
-	@find src | xargs ctags 
+	find src | xargs ctags 
 
