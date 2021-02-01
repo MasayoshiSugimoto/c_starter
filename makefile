@@ -12,7 +12,7 @@ PROGRAM = tictactoe
 .SUFFIXES:
 
 $(PROGRAM): $(OBJS)
-	@$(CC) $? -o $@
+	@$(CC) $(CFLAGS) $? -o $@
 
 .build:
 	@mkdir .build
