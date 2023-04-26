@@ -375,38 +375,6 @@ cleanup:
   return v;
 }
 
-//
-//int main() {
-//  log_init();
-//  log_info("Starting Minesweeper...");
-//
-//  srand(time(NULL));
-//  term_get_size();
-////  char buf[512];
-////  int n;
-////  float f;
-////  int nb_read = 0;
-////  while (true) {
-////    nb_read = scanf("%s %d %f", buf, &n, &f);
-////    log_info_f("nb_read=%d", nb_read);
-////    if (nb_read < 0) break;
-////    log_info_f("buf=%s, n=%d, f=%f", buf, n, f);
-////  }
-//
-//  game_init();
-//  int bomb_pourcentage = 10;
-//  game_randomize(bomb_pourcentage);
-//  game_render();
-//
-////  struct ttysize ts;
-////  ioctl(0, TIOCGSIZE, &ts);
-////  log_info_f("LINES: %s, COLUMNS: %s", ts.ts_lines, ts.ts_columns);
-//
-//  log_info("Minesweeper done.");
-//	return 0;
-//}
-
-
 int main() {
   log_init();
   // Initialize ncurses
