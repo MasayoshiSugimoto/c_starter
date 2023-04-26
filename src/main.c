@@ -16,9 +16,6 @@
 * Main
 ********************************************************************************/
 
-#define WIDTH 8
-#define HEIGHT 8
-
 #define BOARD_CELL_TYPE_EMPTY ' '
 #define BOARD_CELL_TYPE_HIDDEN 'X'
 #define BOARD_CELL_TYPE_MINE 'M'
@@ -156,15 +153,177 @@ void static_queue_int_dump(struct StaticQueueInt* queue) {
 
 
 /********************************************************************************
+* BEGIN GameBoard
+********************************************************************************/
+
+
+#define GAME_BOARD_WIDTH_MAX 8
+#define GAME_BOARD_HEIGHT_MAX 8
+
+
+struct GameBoard {
+  int width;
+  int height;
+  char board[GAME_BOARD_WIDTH_MAX * GAME_BOARD_HEIGHT_MAX];
+  bool visibility_map[GAME_BOARD_WIDTH_MAX * GAME_BOARD_HEIGHT_MAX];
+};
+
+
+void game_board_init(struct GameBoard* game_board, int width, int height) {
+  game_board->width = width;
+  game_board->height = height;
+  for (int i = 0; i < width * height; i++) {
+    game_board->board[i] = BOARD_CELL_TYPE_EMPTY;
+    game_board->visibility_map[i] = false;
+  }
+}
+
+
+int game_board_max_index(struct GameBoard* game_board) {
+  return game_board->width * game_board->height;
+}
+
+
+int game_board_get_index(struct GameBoard* game_board, int x, int y) {
+  return y * game_board->width + x;
+}
+
+
+void game_board_render(struct GameBoard* game_board) {
+  int width = game_board->width;
+  int height = game_board->height;
+  char* board = game_board->board;
+  bool* visibility_map = game_board->visibility_map;
+
+  addch('+');
+  for (int x = 0; x < width; x++) {
+    addch('-');
+  }
+  addch('+');
+  addch('\n');
+
+  for (int y = 0; y < height; y++) {
+    addch('|');
+    for (int x = 0; x < width; x++) {
+      int i = game_board_get_index(game_board, x, y);
+      if (visibility_map[i]) {
+        if (board[i] == BOARD_CELL_TYPE_MINE) {
+          addch(BOARD_CELL_TYPE_MINE);
+        } else if(board[i] == BOARD_CELL_TYPE_EMPTY) {
+          addch(BOARD_CELL_TYPE_EMPTY);
+        } else {
+          addch((char)'0' + board[i]);
+        }
+      } else {
+        addch(BOARD_CELL_TYPE_HIDDEN);
+      }
+    }
+    addch('|');
+    addch('\n');
+  }
+
+  addch('+');
+  for (int x = 0; x < width; x++) {
+    addch('-');
+  }
+  addch('+');
+  addch('\n');
+}
+
+
+void game_board_set_mine(struct GameBoard* game_board, int x, int y) {
+  game_board->board[game_board_get_index(game_board, x, y)] = BOARD_CELL_TYPE_MINE;
+}
+
+
+void game_board_show_cell(struct GameBoard* game_board, int x, int y) {
+  game_board->visibility_map[game_board_get_index(game_board, x, y)] = true;
+}
+
+
+int game_board_get_line(struct GameBoard* game_board, int index) {
+  return index / game_board->width;
+}
+
+
+int game_board_get_column(struct GameBoard* game_board, int index) {
+  return index % game_board->width;
+}
+
+
+void game_board_setup_game(struct GameBoard* game_board, int pourcentage) {
+  int width = game_board->width;
+  int height = game_board->height;
+  int cell_count = game_board->width * game_board->height;
+  char* board = game_board->board;
+  int bomb_count = (int)(cell_count * pourcentage / 100);
+
+  // Set random mines
+  for (int i = 0; i < bomb_count; i++) {
+    int x = rand() % width;
+    int y = rand() % height;
+    board[game_board_get_index(game_board, x, y)] = BOARD_CELL_TYPE_MINE;
+  }
+
+  // Set mine counters.
+  int offsets[] = {
+    -1,
+    width - 1,
+    -width - 1,
+    1,
+    width + 1,
+    -width + 1,
+    width,
+    -width
+  };
+  for (int board_i = 0; board_i < cell_count; board_i++) {
+    if (board[board_i] != BOARD_CELL_TYPE_MINE) continue;
+    for (int offset_i = 0; offset_i < 8; offset_i++) {
+      int j = board_i + offsets[offset_i];
+      if (offset_i <= 2
+          && (game_board_get_column(game_board, j) != game_board_get_column(game_board, board_i) - 1)
+      ) continue;
+      if (offset_i > 2
+          && offset_i <= 5
+          && game_board_get_column(game_board, j) != game_board_get_column(game_board, board_i) + 1
+      ) continue;
+      if (j < 0) continue;
+      if (j >= cell_count) continue;
+      if (board[j] == BOARD_CELL_TYPE_MINE) continue;
+      if (board[j] == BOARD_CELL_TYPE_EMPTY) {
+        board[j] = 1;
+      } else {
+        board[j]++;
+      }
+    }
+  }
+}
+
+
+void game_board_show_all(struct GameBoard* game_board) {
+  for (int i = 0; i < game_board->width * game_board->height; i++) {
+    game_board->visibility_map[i]  = true;
+  }
+}
+
+
+/********************************************************************************
+* END GameBoard
+********************************************************************************/
+
+/********************************************************************************
 * BEGIN Game
 ********************************************************************************/
 
-char g_board[WIDTH * HEIGHT];
-bool g_visible_map[WIDTH * HEIGHT];
+#define GAME_BOARD_WIDTH 8
+#define GAME_BOARD_HEIGHT 8
+
+char g_board[GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT];
+bool g_visible_map[GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT];
 
 
 void game_init() {
-  for (int i = 0; i < WIDTH * HEIGHT; i++) {
+  for (int i = 0; i < GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT; i++) {
     g_board[i] = BOARD_CELL_TYPE_EMPTY;
     g_visible_map[i] = false;
   }
@@ -172,21 +331,21 @@ void game_init() {
 
 
 int game_get_index(int x, int y) {
-  return y * WIDTH + x;
+  return y * GAME_BOARD_WIDTH + x;
 }
 
 
 void game_term_render() {
   addch('+');
-  for (int x = 0; x < WIDTH; x++) {
+  for (int x = 0; x < GAME_BOARD_WIDTH; x++) {
     addch('-');
   }
   addch('+');
   addch('\n');
 
-  for (int y = 0; y < HEIGHT; y++) {
+  for (int y = 0; y < GAME_BOARD_HEIGHT; y++) {
     addch('|');
-    for (int x = 0; x < WIDTH; x++) {
+    for (int x = 0; x < GAME_BOARD_WIDTH; x++) {
       int i = game_get_index(x, y);
       if (g_visible_map[i]) {
         if (g_board[i] == BOARD_CELL_TYPE_MINE) {
@@ -205,7 +364,7 @@ void game_term_render() {
   }
 
   addch('+');
-  for (int x = 0; x < WIDTH; x++) {
+  for (int x = 0; x < GAME_BOARD_WIDTH; x++) {
     addch('-');
   }
   addch('+');
@@ -224,23 +383,23 @@ void game_show_cell(int x, int y) {
 
 
 int game_get_line(int index) {
-  return index / WIDTH;
+  return index / GAME_BOARD_WIDTH;
 }
 
 
 int game_get_column(int index) {
-  return index % WIDTH;
+  return index % GAME_BOARD_WIDTH;
 }
 
 
 void game_setup_game(int pourcentage) {
-  int cell_count = WIDTH * HEIGHT;
+  int cell_count = GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT;
   int bomb_count = (int)(cell_count * pourcentage / 100);
 
   // Set random mines
   for (int i = 0; i < bomb_count; i++) {
-    int x = rand() % WIDTH;
-    int y = rand() % HEIGHT;
+    int x = rand() % GAME_BOARD_WIDTH;
+    int y = rand() % GAME_BOARD_HEIGHT;
     int board_i = game_get_index(x, y);
     g_board[board_i] = BOARD_CELL_TYPE_MINE;
   }
@@ -248,13 +407,13 @@ void game_setup_game(int pourcentage) {
   // Set mine counters.
   int offsets[] = {
     -1,
-    WIDTH - 1,
-    -WIDTH - 1,
+    GAME_BOARD_WIDTH - 1,
+    -GAME_BOARD_WIDTH - 1,
     1,
-    WIDTH + 1,
-    -WIDTH + 1,
-    WIDTH,
-    -WIDTH
+    GAME_BOARD_WIDTH + 1,
+    -GAME_BOARD_WIDTH + 1,
+    GAME_BOARD_WIDTH,
+    -GAME_BOARD_WIDTH
   };
   for (int board_i = 0; board_i < cell_count; board_i++) {
     if (g_board[board_i] != BOARD_CELL_TYPE_MINE) continue;
@@ -280,7 +439,7 @@ void game_setup_game(int pourcentage) {
 
 
 void game_show_all() {
-  for (int i = 0; i < WIDTH * HEIGHT; i++) {
+  for (int i = 0; i < GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT; i++) {
     g_visible_map[i]  = true;
   }
 }
@@ -395,10 +554,15 @@ int main() {
 
   srand(time(NULL));
   term_get_size();
-  game_init();
-  //game_show_all();
+
+  struct GameBoard game_board;
+  int width = 8;
+  int height = 4;
+
+  game_board_init(&game_board, width, height);
+  //game_board_show_all();
   int bomb_pourcentage = 10;
-  game_setup_game(bomb_pourcentage);
+  game_board_setup_game(&game_board, bomb_pourcentage);
 
   int x = 0;
   int y = 0;
@@ -410,7 +574,7 @@ int main() {
   while (true) {
     {  // Update and render.
       move(0, 0);
-      game_term_render();
+      game_board_render(&game_board);
       move(y + cursor_y_offset, x + cursor_x_offset);
       refresh();
     }
@@ -447,7 +611,7 @@ int main() {
       }
 
       if (is_space_pressed) {
-        game_show_cell(x, y);
+        game_board_show_cell(&game_board, x, y);
       }
 
       if (is_quit) {
