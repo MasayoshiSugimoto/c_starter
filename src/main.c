@@ -20,8 +20,9 @@
 #define BOARD_CELL_TYPE_HIDDEN 'X'
 #define BOARD_CELL_TYPE_MINE 'M'
 
-
 #define DEFAULT_TEXT_BUF 512
+
+#define DEBUG_GAME_BOARD_SHOW_ALL false
 
 
 /********************************************************************************
@@ -560,7 +561,7 @@ int main() {
   int height = 4;
 
   game_board_init(&game_board, width, height);
-  //game_board_show_all();
+  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game_board);
   int bomb_pourcentage = 10;
   game_board_setup_game(&game_board, bomb_pourcentage);
 
