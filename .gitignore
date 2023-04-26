@@ -5,7 +5,7 @@
 *.swp
 
 # Executable Binary
-tictactoe
+minesweeper 
 
 # ctags file
 tags

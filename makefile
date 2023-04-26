@@ -1,18 +1,19 @@
 CC = gcc
-CFLAGS = -g
+CFLAGS = -Wall -g 
 DEP_OPT = -MM -MP
 SRC_DIR = src
 BUILD_DIR = .build
 SOURCES = $(foreach d, $(SRC_DIR), $(wildcard $(addprefix $(d)/*, .c)))
 DEPS = $(subst $(SRC_DIR), $(BUILD_DIR), $(SOURCES:.c=.d))
 OBJS = $(subst $(SRC_DIR), $(BUILD_DIR), $(SOURCES:.c=.o))
-PROGRAM = tictactoe
+PROGRAM = minesweeper
+LIBS = -lcurses -lncurses
 
 # Delete the default suffixes
 .SUFFIXES:
 
 $(PROGRAM): $(OBJS)
-	$(CC) $(CFLAGS) $? -o $@
+	$(CC) $(CFLAGS) $? $(LIBS) -o $@
 
 .build:
 	mkdir .build
@@ -37,6 +38,10 @@ build: $(PROGRAM)
 
 run: build
 	./$(PROGRAM)
+
+
+debug: build
+	gdb $(PROGRAM)
 
 try:
 	$(info $(OBJS))
