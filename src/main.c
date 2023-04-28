@@ -23,6 +23,10 @@
 #define DEFAULT_TEXT_BUF 512
 
 #define DEBUG_GAME_BOARD_SHOW_ALL false
+#define DEBUG_ENABLE_TEST false
+
+
+#define array_size(arr) sizeof(arr) / sizeof(arr[0])
 
 
 /********************************************************************************
@@ -114,6 +118,7 @@ void vector_as_string(char* buf, struct Vector v) {
 * END Vector
 ********************************************************************************/
 
+
 /********************************************************************************
 * BEGIN StaticQueue
 ********************************************************************************/
@@ -158,19 +163,27 @@ void static_queue_int_dump(struct StaticQueueInt* queue) {
 ********************************************************************************/
 
 
-#define GAME_BOARD_WIDTH_MAX 8
-#define GAME_BOARD_HEIGHT_MAX 8
-
+#define GAME_BOARD_WIDTH_MAX 64
+#define GAME_BOARD_HEIGHT_MAX 64
+#define GAME_BOARD_SIZE_MAX (GAME_BOARD_WIDTH_MAX * GAME_BOARD_HEIGHT_MAX)
 
 struct GameBoard {
   int width;
   int height;
-  char board[GAME_BOARD_WIDTH_MAX * GAME_BOARD_HEIGHT_MAX];
-  bool visibility_map[GAME_BOARD_WIDTH_MAX * GAME_BOARD_HEIGHT_MAX];
+  char board[GAME_BOARD_SIZE_MAX];
+  bool visibility_map[GAME_BOARD_SIZE_MAX];
 };
 
 
 void game_board_init(struct GameBoard* game_board, int width, int height) {
+  if (width > GAME_BOARD_WIDTH_MAX) {
+    log_fatal_f("width is bigger than the allowed max. width=%d", width);
+  }
+
+  if (height > GAME_BOARD_HEIGHT_MAX) {
+    log_fatal_f("height is bigger than the allowed max. height=%d", height);
+  }
+
   game_board->width = width;
   game_board->height = height;
   for (int i = 0; i < width * height; i++) {
@@ -253,6 +266,7 @@ int game_board_get_column(struct GameBoard* game_board, int index) {
 
 
 void game_board_setup_game(struct GameBoard* game_board, int pourcentage) {
+  log_info_f("game_board_setup_game(game_board, %d)", pourcentage);
   int width = game_board->width;
   int height = game_board->height;
   int cell_count = game_board->width * game_board->height;
@@ -277,10 +291,11 @@ void game_board_setup_game(struct GameBoard* game_board, int pourcentage) {
     width,
     -width
   };
-  for (int board_i = 0; board_i < cell_count; board_i++) {
+  for (int board_i = 0; board_i < cell_count && board_i < GAME_BOARD_SIZE_MAX; board_i++) {
     if (board[board_i] != BOARD_CELL_TYPE_MINE) continue;
-    for (int offset_i = 0; offset_i < 8; offset_i++) {
+    for (int offset_i = 0; offset_i < array_size(offsets); offset_i++) {
       int j = board_i + offsets[offset_i];
+      if (j < 0 || j >= cell_count) continue;
       if (offset_i <= 2
           && (game_board_get_column(game_board, j) != game_board_get_column(game_board, board_i) - 1)
       ) continue;
@@ -288,8 +303,6 @@ void game_board_setup_game(struct GameBoard* game_board, int pourcentage) {
           && offset_i <= 5
           && game_board_get_column(game_board, j) != game_board_get_column(game_board, board_i) + 1
       ) continue;
-      if (j < 0) continue;
-      if (j >= cell_count) continue;
       if (board[j] == BOARD_CELL_TYPE_MINE) continue;
       if (board[j] == BOARD_CELL_TYPE_EMPTY) {
         board[j] = 1;
@@ -308,8 +321,83 @@ void game_board_show_all(struct GameBoard* game_board) {
 }
 
 
+void game_board_play_cell(struct GameBoard* game_board, int x, int y) {
+  log_info_f("game_board_play_cell(game_board, %d, %d)", x, y);
+
+  char* board = game_board->board;
+  bool* visibility_map = game_board->visibility_map;
+  int width = game_board->width;
+
+  int offsets[] = {1, -1, width, -width};
+  int cells[GAME_BOARD_SIZE_MAX];
+  int cells_size = 1;
+
+  cells[0] = game_board_get_index(game_board, x, y);
+  for (int i = 0; i < cells_size && i < GAME_BOARD_SIZE_MAX; i++) {
+    if (visibility_map[cells[i]]) continue;
+    visibility_map[cells[i]] = true;
+    if (board[cells[i]] != BOARD_CELL_TYPE_EMPTY) continue;
+    for (int j = 0; j < array_size(offsets); j++) {
+      int cell = cells[i] + offsets[j];
+      if (cell < 0 || cell >= game_board_max_index(game_board)) continue;
+      if (visibility_map[cell]) continue;
+      if (
+        j <= 1 
+        && game_board_get_line(game_board, cell) != game_board_get_line(game_board, cells[i])
+      ) continue;
+      cells[cells_size++] = cell;
+    }
+  }
+
+}
+
+
 /********************************************************************************
 * END GameBoard
+********************************************************************************/
+
+/********************************************************************************
+* BEGIN Cursor
+********************************************************************************/
+
+
+struct Cursor {
+  int x;
+  int y;
+};
+
+
+void cursor_dump(struct Cursor* cursor) {
+  log_info_f("cursor: x=%d, y=%d", cursor->x, cursor->y);
+}
+
+
+/********************************************************************************
+* END Cursor
+********************************************************************************/
+
+
+/********************************************************************************
+* BEGIN Game
+********************************************************************************/
+
+
+struct Game {
+  struct GameBoard game_board;
+  struct Cursor cursor; 
+};
+
+
+void game_init(struct Game* game, int width, int height) {
+  log_info_f("game_init(game, %d, %d)", width, height);
+  game->cursor.x = 0;
+  game->cursor.y = 0;
+  game_board_init(&game->game_board, width, height);
+}
+
+
+/********************************************************************************
+* BEGIN GameBoard
 ********************************************************************************/
 
 
@@ -375,8 +463,23 @@ cleanup:
   return v;
 }
 
+
+void test() {
+  struct Game game;
+  struct GameBoard* game_board = &game.game_board;
+  while (true) {
+    game_init(&game, 10, 10);
+    game_board_setup_game(game_board, 10);
+    game_board_play_cell(game_board, 0, 0);
+  }
+}
+
+
 int main() {
   log_init();
+
+  if (DEBUG_ENABLE_TEST) test();
+
   // Initialize ncurses
   initscr();
   noecho();
@@ -386,17 +489,17 @@ int main() {
   srand(time(NULL));
   term_get_size();
 
-  struct GameBoard game_board;
-  int width = 8;
-  int height = 4;
+  struct Game game;
+  struct GameBoard* game_board = &game.game_board;
+  struct Cursor* cursor = &game.cursor;
 
-  game_board_init(&game_board, width, height);
-  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game_board);
+  int width = 12;
+  int height = 8;
+  game_init(&game, width, height);
+
+  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
   int bomb_pourcentage = 10;
-  game_board_setup_game(&game_board, bomb_pourcentage);
-
-  int x = 0;
-  int y = 0;
+  game_board_setup_game(game_board, bomb_pourcentage);
 
   int cursor_x_offset = 1;
   int cursor_y_offset = 1;
@@ -405,8 +508,8 @@ int main() {
   while (true) {
     {  // Update and render.
       move(0, 0);
-      game_board_render(&game_board);
-      move(y + cursor_y_offset, x + cursor_x_offset);
+      game_board_render(game_board);
+      move(cursor->y + cursor_y_offset, cursor->x + cursor_x_offset);
       refresh();
     }
 
@@ -416,20 +519,20 @@ int main() {
       bool is_quit = false;
       switch (c) {
         case KEY_DOWN:
-          y++;
-          log_info_f("cursor: x=%d, y=%d", x, y);
+          cursor->y++;
+          cursor_dump(cursor);
           break;
         case KEY_UP:
-          y--;
-          log_info_f("cursor: x=%d, y=%d", x, y);
+          cursor->y--;
+          cursor_dump(cursor);
           break;
         case KEY_LEFT:
-          x--;
-          log_info_f("cursor: x=%d, y=%d", x, y);
+          cursor->x--;
+          cursor_dump(cursor);
           break;
         case KEY_RIGHT:
-          x++;
-          log_info_f("cursor: x=%d, y=%d", x, y);
+          cursor->x++;
+          cursor_dump(cursor);
           break;
         case ' ':
           log_info("Space key pressed.");
@@ -442,7 +545,7 @@ int main() {
       }
 
       if (is_space_pressed) {
-        game_board_show_cell(&game_board, x, y);
+        game_board_play_cell(game_board, cursor->x, cursor->y);
       }
 
       if (is_quit) {
@@ -451,8 +554,8 @@ int main() {
     }
   }
 
-  // End ncurses
-  endwin();
+  endwin();  // End ncurses.
   return 0;
 }
+
 
