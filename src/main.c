@@ -17,7 +17,7 @@
 ********************************************************************************/
 
 #define BOARD_CELL_TYPE_EMPTY ' '
-#define BOARD_CELL_TYPE_HIDDEN '='
+#define BOARD_CELL_TYPE_HIDDEN '#'
 #define BOARD_CELL_TYPE_MINE 'M'
 #define BOARD_CELL_TYPE_OK_MARKER 'O'
 #define BOARD_CELL_TYPE_MINE_MARKER 'X'
