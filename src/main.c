@@ -17,8 +17,10 @@
 ********************************************************************************/
 
 #define BOARD_CELL_TYPE_EMPTY ' '
-#define BOARD_CELL_TYPE_HIDDEN 'X'
+#define BOARD_CELL_TYPE_HIDDEN '='
 #define BOARD_CELL_TYPE_MINE 'M'
+#define BOARD_CELL_TYPE_OK_MARKER 'O'
+#define BOARD_CELL_TYPE_MINE_MARKER 'X'
 
 #define DEFAULT_TEXT_BUF 512
 
@@ -172,6 +174,7 @@ struct GameBoard {
   int height;
   char board[GAME_BOARD_SIZE_MAX];
   bool visibility_map[GAME_BOARD_SIZE_MAX];
+  char markers[GAME_BOARD_SIZE_MAX];
 };
 
 
@@ -189,6 +192,7 @@ void game_board_init(struct GameBoard* game_board, int width, int height) {
   for (int i = 0; i < width * height; i++) {
     game_board->board[i] = BOARD_CELL_TYPE_EMPTY;
     game_board->visibility_map[i] = false;
+    game_board->markers[i] = BOARD_CELL_TYPE_EMPTY;
   }
 }
 
@@ -208,6 +212,7 @@ void game_board_render(struct GameBoard* game_board) {
   int height = game_board->height;
   char* board = game_board->board;
   bool* visibility_map = game_board->visibility_map;
+  char* markers = game_board->markers;
 
   addch('+');
   for (int x = 0; x < width; x++) {
@@ -223,11 +228,15 @@ void game_board_render(struct GameBoard* game_board) {
       if (visibility_map[i]) {
         if (board[i] == BOARD_CELL_TYPE_MINE) {
           addch(BOARD_CELL_TYPE_MINE);
-        } else if(board[i] == BOARD_CELL_TYPE_EMPTY) {
+        } else if (board[i] == BOARD_CELL_TYPE_EMPTY) {
           addch(BOARD_CELL_TYPE_EMPTY);
         } else {
           addch((char)'0' + board[i]);
         }
+      } else if (markers[i] == BOARD_CELL_TYPE_OK_MARKER) {
+        addch(BOARD_CELL_TYPE_OK_MARKER);
+      } else if (markers[i] == BOARD_CELL_TYPE_MINE_MARKER) {
+        addch(BOARD_CELL_TYPE_MINE_MARKER);
       } else {
         addch(BOARD_CELL_TYPE_HIDDEN);
       }
@@ -351,6 +360,29 @@ void game_board_play_cell(struct GameBoard* game_board, int x, int y) {
 
 }
 
+
+void game_board_switch_ok_marker(struct GameBoard* game_board, int x, int y) {
+  log_info_f("game_board_switch_ok_marker(game_board, %d, %d)", x, y);
+  char* markers = game_board->markers;
+  int i = game_board_get_index(game_board, x, y);
+  if (markers[i] == BOARD_CELL_TYPE_OK_MARKER) {
+    markers[i] = BOARD_CELL_TYPE_HIDDEN;
+  } else {
+    markers[i] = BOARD_CELL_TYPE_OK_MARKER;
+  }
+}
+
+
+void game_board_switch_mine_marker(struct GameBoard* game_board, int x, int y) {
+  log_info_f("game_board_switch_mine_marker(game_board, %d, %d)", x, y);
+  char* markers = game_board->markers;
+  int i = game_board_get_index(game_board, x, y);
+  if (markers[i] == BOARD_CELL_TYPE_MINE_MARKER) {
+    markers[i] = BOARD_CELL_TYPE_HIDDEN;
+  } else {
+    markers[i] = BOARD_CELL_TYPE_MINE_MARKER;
+  }
+}
 
 /********************************************************************************
 * END GameBoard
@@ -541,6 +573,14 @@ int main() {
         case 'q':
           log_info("Q key pressed.");
           is_quit = true;
+          break;
+        case 'o':
+          log_info("O key pressed.");
+          game_board_switch_ok_marker(game_board, cursor->x, cursor->y);
+          break;
+        case 'x':
+          log_info("X key pressed.");
+          game_board_switch_mine_marker(game_board, cursor->x, cursor->y);
           break;
       }
 
