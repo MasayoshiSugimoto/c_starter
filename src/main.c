@@ -384,6 +384,33 @@ void game_board_switch_mine_marker(struct GameBoard* game_board, int x, int y) {
   }
 }
 
+// Game is won if all hidden cells are mines.
+bool game_board_is_win(struct GameBoard* game_board) {
+  log_info("game_board_is_win(game_board)");
+  char* board = game_board->board;
+  bool* visibility_map = game_board->visibility_map;
+
+  for (int i = 0; i < game_board_max_index(game_board); i++) {
+    if (visibility_map[i] && board[i] == BOARD_CELL_TYPE_MINE) return false;
+    if (!visibility_map[i] && board[i] != BOARD_CELL_TYPE_MINE) return false;
+  }
+  return true;
+}
+
+
+// Game is lost when a mine is visible.
+bool game_board_is_lost(struct GameBoard* game_board) {
+  log_info("game_board_is_lost(game_board)");
+  char* board = game_board->board;
+  bool* visibility_map = game_board->visibility_map;
+
+  for (int i = 0; i < game_board_max_index(game_board); i++) {
+    if (visibility_map[i] && board[i] == BOARD_CELL_TYPE_MINE) return true;
+  }
+  return false;
+}
+
+
 /********************************************************************************
 * END GameBoard
 ********************************************************************************/
@@ -429,7 +456,35 @@ void game_init(struct Game* game, int width, int height) {
 
 
 /********************************************************************************
-* BEGIN GameBoard
+* END GameBoard
+********************************************************************************/
+
+
+/********************************************************************************
+* BEGIN Render
+********************************************************************************/
+
+
+void render_game_over(struct GameBoard* game_board) {
+  int x = (game_board->width / 2) - 5;
+  int y = (game_board->height / 2);
+  mvaddstr(y - 1, x, "           ");
+  mvaddstr(y    , x, " GAME OVER ");
+  mvaddstr(y + 1, x, "           ");
+}
+
+
+void render_game_won(struct GameBoard* game_board) {
+  int x = (game_board->width / 2) - 4;
+  int y = (game_board->height / 2);
+  mvaddstr(y - 1, x, "         ");
+  mvaddstr(y    , x, " YOU WON ");
+  mvaddstr(y + 1, x, "         ");
+}
+
+
+/********************************************************************************
+* END Render
 ********************************************************************************/
 
 
@@ -496,21 +551,105 @@ cleanup:
 }
 
 
-void test() {
-  struct Game game;
-  struct GameBoard* game_board = &game.game_board;
+void test(struct Game* game) {
+  struct GameBoard* game_board = &game->game_board;
   while (true) {
-    game_init(&game, 10, 10);
-    game_board_setup_game(game_board, 10);
-    game_board_play_cell(game_board, 0, 0);
+    clear();
+    game_init(game, 4, 4);
+    game_board_setup_game(game_board, 13);
+    int width = game_board->width;
+    int height = game_board->height;
+
+    //game_board_show_all(game_board);
+    for (int i = 0; i < 2; i++) {
+      int x = rand() % width;
+      int y = rand() % height;
+      game_board->visibility_map[game_board_get_index(game_board, x, y)] = true;
+    }
+
+    game_board_render(game_board);
+
+    if (game_board_is_lost(game_board)) {
+      refresh();
+      sleep(2);
+    }
+
+  }
+}
+
+
+enum GameState {
+  GAME_STATE_IN_GAME,
+  GAME_STATE_GAME_OVER,
+  GAME_STATE_GAME_WON
+};
+
+
+struct Inputs {
+  bool is_quit;
+};
+
+
+void input_init(struct Inputs* inputs) {
+  inputs->is_quit = false;
+}
+
+
+void input_update_in_game(struct Inputs* inputs, struct Game* game) {
+  struct GameBoard* game_board = &game->game_board;
+  struct Cursor* cursor = &game->cursor;
+  int c = getch();
+  switch (c) {
+    case KEY_DOWN:
+      cursor->y++;
+      cursor_dump(cursor);
+      break;
+    case KEY_UP:
+      cursor->y--;
+      cursor_dump(cursor);
+      break;
+    case KEY_LEFT:
+      cursor->x--;
+      cursor_dump(cursor);
+      break;
+    case KEY_RIGHT:
+      cursor->x++;
+      cursor_dump(cursor);
+      break;
+    case ' ':
+      log_info("Space key pressed.");
+      game_board_play_cell(game_board, cursor->x, cursor->y);
+      break;
+    case 'q':
+      log_info("Q key pressed.");
+      inputs->is_quit = true;
+      break;
+    case 'o':
+      log_info("O key pressed.");
+      game_board_switch_ok_marker(game_board, cursor->x, cursor->y);
+      break;
+    case 'x':
+      log_info("X key pressed.");
+      game_board_switch_mine_marker(game_board, cursor->x, cursor->y);
+      break;
+  }
+}
+
+
+
+void input_update_game_over(struct Inputs* inputs, struct Game* game) {
+  int c = getch();
+  switch (c) {
+    case 'q':
+      log_info("Q key pressed.");
+      inputs->is_quit = true;
+      break;
   }
 }
 
 
 int main() {
   log_init();
-
-  if (DEBUG_ENABLE_TEST) test();
 
   // Initialize ncurses
   initscr();
@@ -519,11 +658,12 @@ int main() {
   keypad(stdscr, TRUE);
 
   srand(time(NULL));
-  term_get_size();
 
   struct Game game;
   struct GameBoard* game_board = &game.game_board;
   struct Cursor* cursor = &game.cursor;
+
+  if (DEBUG_ENABLE_TEST) test(&game);
 
   int width = 12;
   int height = 8;
@@ -536,66 +676,61 @@ int main() {
   int cursor_x_offset = 1;
   int cursor_y_offset = 1;
 
+  enum GameState game_state = GAME_STATE_IN_GAME;
+
+  struct Inputs inputs;
+  input_init(&inputs);
+
   // Loop to track cursor position
   while (true) {
+    game_state = GAME_STATE_IN_GAME;
+
+    if (game_board_is_lost(game_board)) {
+      game_state = GAME_STATE_GAME_OVER;
+    } else if (game_board_is_win(game_board)) {
+      game_state = GAME_STATE_GAME_WON;
+    } else {
+      game_state = GAME_STATE_IN_GAME;
+    }
+
     {  // Update and render.
       move(0, 0);
       game_board_render(game_board);
       move(cursor->y + cursor_y_offset, cursor->x + cursor_x_offset);
+      switch (game_state) {
+        case GAME_STATE_IN_GAME:
+          break;
+        case GAME_STATE_GAME_OVER:
+          render_game_over(game_board);
+          break;
+        case GAME_STATE_GAME_WON:
+          render_game_won(game_board);
+          break;
+        default:
+          log_fatal_f("Invalid game_state=%d", game_state);
+      }
       refresh();
     }
 
-    {  // Handle user inputs.
-      int c = getch();
-      bool is_space_pressed = false;
-      bool is_quit = false;
-      switch (c) {
-        case KEY_DOWN:
-          cursor->y++;
-          cursor_dump(cursor);
-          break;
-        case KEY_UP:
-          cursor->y--;
-          cursor_dump(cursor);
-          break;
-        case KEY_LEFT:
-          cursor->x--;
-          cursor_dump(cursor);
-          break;
-        case KEY_RIGHT:
-          cursor->x++;
-          cursor_dump(cursor);
-          break;
-        case ' ':
-          log_info("Space key pressed.");
-          is_space_pressed = true;
-          break;
-        case 'q':
-          log_info("Q key pressed.");
-          is_quit = true;
-          break;
-        case 'o':
-          log_info("O key pressed.");
-          game_board_switch_ok_marker(game_board, cursor->x, cursor->y);
-          break;
-        case 'x':
-          log_info("X key pressed.");
-          game_board_switch_mine_marker(game_board, cursor->x, cursor->y);
-          break;
-      }
-
-      if (is_space_pressed) {
-        game_board_play_cell(game_board, cursor->x, cursor->y);
-      }
-
-      if (is_quit) {
+    switch (game_state) {
+      case GAME_STATE_IN_GAME:
+        input_update_in_game(&inputs, &game);
         break;
-      }
+      case GAME_STATE_GAME_OVER:
+        input_update_game_over(&inputs, &game);
+        game_init(&game, width, height);
+        break;
+      case GAME_STATE_GAME_WON:
+        break;
+      default:
+        log_fatal_f("Invalid game_state=%d", game_state);
     }
+
+    if (inputs.is_quit) break;
+
   }
 
   endwin();  // End ncurses.
   return 0;
 }
-
 
