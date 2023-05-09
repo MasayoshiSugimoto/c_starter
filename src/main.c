@@ -161,6 +161,27 @@ void static_queue_int_dump(struct StaticQueueInt* queue) {
 
 
 /********************************************************************************
+* BEGIN Cursor
+********************************************************************************/
+
+
+struct Cursor {
+  int x;
+  int y;
+};
+
+
+void cursor_dump(struct Cursor* cursor) {
+  log_info_f("cursor: x=%d, y=%d", cursor->x, cursor->y);
+}
+
+
+/********************************************************************************
+* END Cursor
+********************************************************************************/
+
+
+/********************************************************************************
 * BEGIN GameBoard
 ********************************************************************************/
 
@@ -411,30 +432,30 @@ bool game_board_is_lost(struct GameBoard* game_board) {
 }
 
 
-/********************************************************************************
-* END GameBoard
-********************************************************************************/
-
-/********************************************************************************
-* BEGIN Cursor
-********************************************************************************/
-
-
-struct Cursor {
-  int x;
-  int y;
-};
-
-
-void cursor_dump(struct Cursor* cursor) {
-  log_info_f("cursor: x=%d, y=%d", cursor->x, cursor->y);
+/*
+ * Move the cursor but keep it inside the board.
+ * If moved in diagonal, allow displacement on one axis if allowed.
+ */
+void game_board_move_cursor(
+    struct GameBoard* game_board,
+    struct Cursor* cursor,
+    int x,
+    int y
+) {
+  int newX = cursor->x + x;
+  int newY = cursor->y + y;
+  if (newX >= 0 && newX < game_board->width) {
+    cursor->x = newX;
+  }
+  if (newY >= 0 && newY < game_board->height) {
+    cursor->y = newY;
+  }
 }
 
 
 /********************************************************************************
-* END Cursor
+* END GameBoard
 ********************************************************************************/
-
 
 /********************************************************************************
 * BEGIN Game
@@ -456,7 +477,7 @@ void game_init(struct Game* game, int width, int height) {
 
 
 /********************************************************************************
-* END GameBoard
+* END Game
 ********************************************************************************/
 
 
@@ -601,19 +622,19 @@ void input_update_in_game(struct Inputs* inputs, struct Game* game) {
   int c = getch();
   switch (c) {
     case KEY_DOWN:
-      cursor->y++;
+      game_board_move_cursor(game_board, cursor, 0, 1);
       cursor_dump(cursor);
       break;
     case KEY_UP:
-      cursor->y--;
+      game_board_move_cursor(game_board, cursor, 0, -1);
       cursor_dump(cursor);
       break;
     case KEY_LEFT:
-      cursor->x--;
+      game_board_move_cursor(game_board, cursor, -1, 0);
       cursor_dump(cursor);
       break;
     case KEY_RIGHT:
-      cursor->x++;
+      game_board_move_cursor(game_board, cursor, 1, 0);
       cursor_dump(cursor);
       break;
     case ' ':
