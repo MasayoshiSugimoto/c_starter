@@ -165,6 +165,13 @@ void static_queue_int_dump(struct StaticQueueInt* queue) {
 ********************************************************************************/
 
 
+enum CursorVisibility {
+  CURSOR_VISIBILITY_INVISIBLE = 0,
+  CURSOR_VISIBILITY_NORMAL = 1,
+  CURSOR_VISIBILITY_HIGH_VISIBILITY = 2
+};
+
+
 struct Cursor {
   int x;
   int y;
@@ -487,8 +494,8 @@ void game_init(struct Game* game, int width, int height) {
 
 
 void render_game_over(struct GameBoard* game_board) {
-  int x = (game_board->width / 2) - 5;
-  int y = (game_board->height / 2);
+  int x = (game_board->width / 2) - 4;
+  int y = (game_board->height / 2) + 1;
   mvaddstr(y - 1, x, "           ");
   mvaddstr(y    , x, " GAME OVER ");
   mvaddstr(y + 1, x, "           ");
@@ -496,8 +503,8 @@ void render_game_over(struct GameBoard* game_board) {
 
 
 void render_game_won(struct GameBoard* game_board) {
-  int x = (game_board->width / 2) - 4;
-  int y = (game_board->height / 2);
+  int x = (game_board->width / 2) - 3;
+  int y = (game_board->height / 2) + 1;
   mvaddstr(y - 1, x, "         ");
   mvaddstr(y    , x, " YOU WON ");
   mvaddstr(y + 1, x, "         ");
@@ -669,6 +676,17 @@ void input_update_game_over(struct Inputs* inputs, struct Game* game) {
 }
 
 
+void input_update_game_won(struct Inputs* inputs, struct Game* game) {
+  int c = getch();
+  switch (c) {
+    case 'q':
+      log_info("Q key pressed.");
+      inputs->is_quit = true;
+      break;
+  }
+}
+
+
 int main() {
   log_init();
 
@@ -686,8 +704,8 @@ int main() {
 
   if (DEBUG_ENABLE_TEST) test(&game);
 
-  int width = 12;
-  int height = 8;
+  int width = 15;
+  int height = 9;
   game_init(&game, width, height);
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
@@ -720,11 +738,14 @@ int main() {
       move(cursor->y + cursor_y_offset, cursor->x + cursor_x_offset);
       switch (game_state) {
         case GAME_STATE_IN_GAME:
+          curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
           break;
         case GAME_STATE_GAME_OVER:
+          curs_set(CURSOR_VISIBILITY_INVISIBLE);
           render_game_over(game_board);
           break;
         case GAME_STATE_GAME_WON:
+          curs_set(CURSOR_VISIBILITY_INVISIBLE);
           render_game_won(game_board);
           break;
         default:
@@ -742,6 +763,7 @@ int main() {
         game_init(&game, width, height);
         break;
       case GAME_STATE_GAME_WON:
+        input_update_game_won(&inputs, &game);
         break;
       default:
         log_fatal_f("Invalid game_state=%d", game_state);
