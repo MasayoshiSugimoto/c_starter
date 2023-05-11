@@ -235,21 +235,25 @@ int game_board_get_index(struct GameBoard* game_board, int x, int y) {
 }
 
 
-void game_board_render(struct GameBoard* game_board) {
+void game_board_render(struct GameBoard* game_board, int left, int top) {
   int width = game_board->width;
   int height = game_board->height;
   char* board = game_board->board;
   bool* visibility_map = game_board->visibility_map;
   char* markers = game_board->markers;
 
+  int line = top;
+  move(line, left);
   addch('+');
   for (int x = 0; x < width; x++) {
     addch('-');
   }
   addch('+');
-  addch('\n');
+
+  line++;
 
   for (int y = 0; y < height; y++) {
+    move(line, left);
     addch('|');
     for (int x = 0; x < width; x++) {
       int i = game_board_get_index(game_board, x, y);
@@ -270,15 +274,15 @@ void game_board_render(struct GameBoard* game_board) {
       }
     }
     addch('|');
-    addch('\n');
+    line++;
   }
 
+  move(line, left);
   addch('+');
   for (int x = 0; x < width; x++) {
     addch('-');
   }
   addch('+');
-  addch('\n');
 }
 
 
@@ -516,6 +520,35 @@ void render_game_won(struct GameBoard* game_board) {
 ********************************************************************************/
 
 
+/********************************************************************************
+* BEGIN Render
+********************************************************************************/
+
+
+struct Terminal {
+  int width;
+  int height;
+};
+
+
+void terminal_init(struct Terminal* terminal) {
+  getmaxyx(stdscr, terminal->height, terminal->width);
+}
+
+
+struct Vector terminal_center(struct Terminal* terminal) {
+  struct Vector v;
+  v.x = terminal->width / 2;
+  v.y = terminal->height / 2;
+  return v;
+}
+
+
+/********************************************************************************
+* END Render
+********************************************************************************/
+
+
 struct Vector term_get_size(void) {
   struct Vector empty_vector;
   empty_vector.x = 0;
@@ -580,29 +613,6 @@ cleanup:
 
 
 void test(struct Game* game) {
-  struct GameBoard* game_board = &game->game_board;
-  while (true) {
-    clear();
-    game_init(game, 4, 4);
-    game_board_setup_game(game_board, 13);
-    int width = game_board->width;
-    int height = game_board->height;
-
-    //game_board_show_all(game_board);
-    for (int i = 0; i < 2; i++) {
-      int x = rand() % width;
-      int y = rand() % height;
-      game_board->visibility_map[game_board_get_index(game_board, x, y)] = true;
-    }
-
-    game_board_render(game_board);
-
-    if (game_board_is_lost(game_board)) {
-      refresh();
-      sleep(2);
-    }
-
-  }
 }
 
 
@@ -720,8 +730,14 @@ int main() {
   struct Inputs inputs;
   input_init(&inputs);
 
+  struct Terminal terminal;
+
   // Loop to track cursor position
   while (true) {
+    terminal_init(&terminal);
+    log_info_f("terminal={width:%d, height:%d}", terminal.width, terminal.height);
+    struct Vector center = terminal_center(&terminal);
+
     game_state = GAME_STATE_IN_GAME;
 
     if (game_board_is_lost(game_board)) {
@@ -733,9 +749,17 @@ int main() {
     }
 
     {  // Update and render.
-      move(0, 0);
-      game_board_render(game_board);
-      move(cursor->y + cursor_y_offset, cursor->x + cursor_x_offset);
+      erase();
+
+      int game_board_left = center.x - game_board->width / 2;
+      int game_board_top = center.y - game_board->height / 2;
+
+      game_board_render(game_board, game_board_left, game_board_top);
+
+      move(
+          cursor->y + cursor_y_offset + game_board_top,
+          cursor->x + cursor_x_offset + game_board_left
+      );
       switch (game_state) {
         case GAME_STATE_IN_GAME:
           curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
