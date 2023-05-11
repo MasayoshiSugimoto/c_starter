@@ -497,21 +497,17 @@ void game_init(struct Game* game, int width, int height) {
 ********************************************************************************/
 
 
-void render_game_over(struct GameBoard* game_board) {
-  int x = (game_board->width / 2) - 4;
-  int y = (game_board->height / 2) + 1;
-  mvaddstr(y - 1, x, "           ");
-  mvaddstr(y    , x, " GAME OVER ");
-  mvaddstr(y + 1, x, "           ");
+void render_game_over(struct GameBoard* game_board, int left, int top) {
+  mvaddstr(top, left, "           ");
+  mvaddstr(top + 1, left, " GAME OVER ");
+  mvaddstr(top + 2, left, "           ");
 }
 
 
-void render_game_won(struct GameBoard* game_board) {
-  int x = (game_board->width / 2) - 3;
-  int y = (game_board->height / 2) + 1;
-  mvaddstr(y - 1, x, "         ");
-  mvaddstr(y    , x, " YOU WON ");
-  mvaddstr(y + 1, x, "         ");
+void render_game_won(struct GameBoard* game_board, int left, int top) {
+  mvaddstr(top, left, "         ");
+  mvaddstr(top + 1, left, " YOU WON ");
+  mvaddstr(top + 2, left, "         ");
 }
 
 
@@ -766,11 +762,19 @@ int main() {
           break;
         case GAME_STATE_GAME_OVER:
           curs_set(CURSOR_VISIBILITY_INVISIBLE);
-          render_game_over(game_board);
+          render_game_over(
+              game_board,
+              game_board_left + game_board->width / 2 - 4,
+              game_board_top + game_board->height / 2
+          );
           break;
         case GAME_STATE_GAME_WON:
           curs_set(CURSOR_VISIBILITY_INVISIBLE);
-          render_game_won(game_board);
+          render_game_won(
+              game_board,
+              game_board_left + game_board->width / 2 - 3,
+              game_board_top + game_board->height / 2
+          );
           break;
         default:
           log_fatal_f("Invalid game_state=%d", game_state);
