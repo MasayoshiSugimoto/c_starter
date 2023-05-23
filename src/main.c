@@ -17,7 +17,7 @@
 ********************************************************************************/
 
 #define BOARD_CELL_TYPE_EMPTY ' '
-#define BOARD_CELL_TYPE_HIDDEN '#'
+#define BOARD_CELL_TYPE_HIDDEN ACS_CKBOARD
 #define BOARD_CELL_TYPE_MINE 'M'
 #define BOARD_CELL_TYPE_OK_MARKER 'O'
 #define BOARD_CELL_TYPE_MINE_MARKER 'X'
@@ -246,17 +246,17 @@ void game_board_render(struct GameBoard* game_board, int left, int top) {
 
   int line = top;
   move(line, left);
-  addch('+');
+  addch(ACS_ULCORNER);
   for (int x = 0; x < width; x++) {
-    addch('-');
+    addch(ACS_HLINE);
   }
-  addch('+');
+  addch(ACS_URCORNER);
 
   line++;
 
   for (int y = 0; y < height; y++) {
     move(line, left);
-    addch('|');
+    addch(ACS_VLINE);
     for (int x = 0; x < width; x++) {
       int i = game_board_get_index(game_board, x, y);
       if (visibility_map[i]) {
@@ -275,16 +275,16 @@ void game_board_render(struct GameBoard* game_board, int left, int top) {
         addch(BOARD_CELL_TYPE_HIDDEN);
       }
     }
-    addch('|');
+    addch(ACS_VLINE);
     line++;
   }
 
   move(line, left);
-  addch('+');
+  addch(ACS_LLCORNER);
   for (int x = 0; x < width; x++) {
-    addch('-');
+    addch(ACS_HLINE);
   }
-  addch('+');
+  addch(ACS_LRCORNER);
 }
 
 
