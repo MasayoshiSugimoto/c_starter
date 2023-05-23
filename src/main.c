@@ -750,9 +750,9 @@ int main() {
       erase();
 
       if (terminal.height < TERMINAL_MIN_HEIGHT) {
-        log_info("Terminal height is less than minimum allowed.");
+        log_info("Terminal height is less than the minimum allowed.");
         addstr(
-            "Terminal height is less than minimum allowed.\n"
+            "Terminal height is less than the minimum allowed.\n"
             "Please resize the terminal.\n"
         );
         getch();
