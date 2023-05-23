@@ -759,8 +759,8 @@ int main() {
         continue;
       }
 
-      int game_board_left = center.x - game_board->width / 2;
-      int game_board_top = center.y - game_board->height / 2;
+      int game_board_left = center.x - (game_board->width + 2) / 2;
+      int game_board_top = center.y - (game_board->height + 2) / 2;
 
       game_board_render(game_board, game_board_left, game_board_top);
 
