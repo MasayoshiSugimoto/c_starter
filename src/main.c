@@ -27,6 +27,8 @@
 #define DEBUG_GAME_BOARD_SHOW_ALL false
 #define DEBUG_ENABLE_TEST false
 
+#define TERMINAL_MIN_HEIGHT 14
+
 
 #define array_size(arr) sizeof(arr) / sizeof(arr[0])
 
@@ -747,6 +749,16 @@ int main() {
     {  // Update and render.
       erase();
 
+      if (terminal.height < TERMINAL_MIN_HEIGHT) {
+        log_info("Terminal height is less than minimum allowed.");
+        addstr(
+            "Terminal height is less than minimum allowed.\n"
+            "Please resize the terminal.\n"
+        );
+        getch();
+        continue;
+      }
+
       int game_board_left = center.x - game_board->width / 2;
       int game_board_top = center.y - game_board->height / 2;
 
@@ -789,6 +801,7 @@ int main() {
       case GAME_STATE_GAME_OVER:
         input_update_game_over(&inputs, &game);
         game_init(&game, width, height);
+        game_board_setup_game(game_board, bomb_pourcentage);
         break;
       case GAME_STATE_GAME_WON:
         input_update_game_won(&inputs, &game);
