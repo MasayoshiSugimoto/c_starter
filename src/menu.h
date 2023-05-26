@@ -18,6 +18,14 @@ enum MenuSelection {
 };
 
 
+enum MenuCommand {
+  MENU_COMMAND_DO_NOTHING,
+  MENU_COMMAND_SELECT_GAME_EASY,
+  MENU_COMMAND_SELECT_GAME_MEDIUM,
+  MENU_COMMAND_SELECT_GAME_HARD
+};
+
+
 const char* MENU_SELECTION_NAMES[] = {
   "easy",
   "medium",
@@ -43,6 +51,11 @@ const char* menu_selection_as_string(enum MenuSelection selection) {
 }
 
 
+enum MenuCommand menu_command_from_selection(enum MenuSelection selection) {
+  return MENU_COMMAND_SELECT_GAME_EASY + selection;
+}
+
+
 void menu_init(struct Menu* menu) {
 	int width = MENU_WIDTH;
   int height = MENU_HEIGHT;
@@ -51,6 +64,16 @@ void menu_init(struct Menu* menu) {
 
 	menu->window = newwin(height, width, starty, startx);
   menu->menu_selection = MENU_SELECTION_MEDIUM;
+}
+
+
+void menu_reset_window(struct Menu* menu) {
+	int width = MENU_WIDTH;
+  int height = MENU_HEIGHT;
+	int starty = 0;
+	int startx = 0;
+  if (menu->window != NULL) delwin(menu->window);
+	menu->window = newwin(height, width, starty, startx);
 }
 
 
@@ -99,7 +122,7 @@ void menu_erase(struct Menu* menu) {
 }
 
 
-void menu_update_input(struct Menu* menu, int input) {
+enum MenuCommand menu_update_input(struct Menu* menu, int input) {
   switch (input) {
     case KEY_DOWN:
       log_info("Down key pressed.");
@@ -108,7 +131,7 @@ void menu_update_input(struct Menu* menu, int input) {
           "menu->menu_selection=%s",
           menu_selection_as_string(menu->menu_selection)
       );
-      break;
+      return MENU_COMMAND_DO_NOTHING;
     case KEY_UP:
       log_info("Up key pressed.");
       int selection = menu->menu_selection - 1;
@@ -120,7 +143,11 @@ void menu_update_input(struct Menu* menu, int input) {
           "menu->menu_selection=%s",
           menu_selection_as_string(menu->menu_selection)
       );
-      break;
+      return MENU_COMMAND_DO_NOTHING;
+    case KEY_RESIZE:
+      return MENU_COMMAND_DO_NOTHING;
+    default:
+      return menu_command_from_selection(menu->menu_selection);
   }
 }
 

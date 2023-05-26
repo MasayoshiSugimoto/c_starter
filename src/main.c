@@ -28,7 +28,7 @@
 #define DEBUG_GAME_BOARD_SHOW_ALL false
 #define DEBUG_ENABLE_TEST true
 
-#define TERMINAL_MIN_HEIGHT 14
+#define TERMINAL_MIN_HEIGHT 16
 
 
 /********************************************************************************
@@ -50,9 +50,9 @@ void render_game_won(struct GameBoard* game_board, int left, int top) {
 }
 
 
-void render_menu_state(struct Menu* menu) {
-  int left = 2;
-  int top = 2;
+void render_menu_state(struct Terminal* terminal, struct Menu* menu) {
+  int left = terminal->width / 2 - menu_get_width(menu) / 2;
+  int top = terminal->height / 2 - menu_get_height(menu) / 2;
   menu_set_position(menu, left, top);
   menu_erase(menu);
   menu_render(menu);
@@ -328,58 +328,45 @@ int main() {
 
   // Loop to track cursor position
   while (true) {
-
     terminal_init(&terminal);
     log_info_f("terminal={width:%d, height:%d}", terminal.width, terminal.height);
     struct Vector center = terminal_center(&terminal);
 
-    // Update game state.
-    switch (game_state) {
-      case GAME_STATE_IN_GAME:
-        if (game_board_is_lost(game_board)) {
-          game_state = GAME_STATE_GAME_OVER;
-        } else if (game_board_is_win(game_board)) {
-          game_state = GAME_STATE_GAME_WON;
-        }
-        break;
-      case GAME_STATE_GAME_OVER:
-      case GAME_STATE_GAME_WON:
-      case GAME_STATE_MENU:
-        // State change based on events.
-        break;
-      default:
-        log_fatal_f("Invalid game_state: %d", game_state);
-    }
-
-    {  // Update and render.
+    if (terminal.height < TERMINAL_MIN_HEIGHT) {
+      log_info("Terminal height is less than the minimum allowed.");
       erase();
-
-      if (terminal.height < TERMINAL_MIN_HEIGHT) {
-        log_info("Terminal height is less than the minimum allowed.");
-        addstr(
-            "Terminal height is less than the minimum allowed.\n"
-            "Please resize the terminal.\n"
-        );
-      } else {
-        switch (game_state) {
-          case GAME_STATE_IN_GAME:
-          case GAME_STATE_GAME_OVER:
-          case GAME_STATE_GAME_WON:
-            game_render_in_game(&game, game_state, center);
-            refresh();
-            break;
-          case GAME_STATE_MENU:
-            refresh();
-            render_menu_state(&menu);
-            break;
-          default:
-            log_fatal_f("Invalid game_state: %d", game_state);
-        }
-      }
-
+      addstr(
+          "Terminal height is less than the minimum allowed.\n"
+          "Please resize the terminal.\n"
+      );
+      refresh();
+      getch();  // Wait for resize.
+      menu_reset_window(&menu);
+      continue;
     }
 
+
+    {  // Render.
+      erase();
+      switch (game_state) {
+        case GAME_STATE_IN_GAME:
+        case GAME_STATE_GAME_OVER:
+        case GAME_STATE_GAME_WON:
+          game_render_in_game(&game, game_state, center);
+          refresh();
+          break;
+        case GAME_STATE_MENU:
+          refresh();
+          render_menu_state(&terminal, &menu);
+          break;
+        default:
+          log_fatal_f("Invalid game_state: %d", game_state);
+      }
+    }
+
+    // Update inputs.
     int input = getch();
+    enum MenuCommand menu_command = MENU_COMMAND_DO_NOTHING;
     switch (game_state) {
       case GAME_STATE_IN_GAME:
         input_update_in_game(&inputs, &game, input);
@@ -393,13 +380,40 @@ int main() {
         input_update_game_won(&inputs, &game, input);
         break;
       case GAME_STATE_MENU:
-        menu_update_input(&menu, input);
+        menu_command = menu_update_input(&menu, input);
         break;
       default:
         log_fatal_f("Invalid game_state=%d", game_state);
     }
-
     if (inputs.is_quit) break;
+
+    // Update game state.
+    switch (game_state) {
+      case GAME_STATE_IN_GAME:
+        if (game_board_is_lost(game_board)) {
+          game_state = GAME_STATE_GAME_OVER;
+        } else if (game_board_is_win(game_board)) {
+          game_state = GAME_STATE_GAME_WON;
+        }
+        break;
+      case GAME_STATE_GAME_OVER:
+      case GAME_STATE_GAME_WON:
+        break;
+      case GAME_STATE_MENU:
+        // State change based on events.
+        switch (menu_command) {
+          case MENU_COMMAND_SELECT_GAME_EASY:
+          case MENU_COMMAND_SELECT_GAME_MEDIUM:
+          case MENU_COMMAND_SELECT_GAME_HARD:
+            game_state = GAME_STATE_IN_GAME;
+            break;
+          case MENU_COMMAND_DO_NOTHING:
+            break;
+        }
+        break;
+      default:
+        log_fatal_f("Invalid game_state: %d", game_state);
+    }
 
   }
 
