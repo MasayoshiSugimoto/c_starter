@@ -7,7 +7,7 @@
 
 
 #define MENU_WIDTH 30
-#define MENU_HEIGHT 15
+#define MENU_HEIGHT 14
 
 
 enum MenuSelection {
@@ -29,6 +29,7 @@ struct Menu {
   WINDOW* window;
   enum MenuSelection menu_selection;
 };
+
 
 int g_menu_warning_suppressor;  // This variable is just there to avoid warnings.
 
@@ -77,15 +78,17 @@ void menu_render(struct Menu* menu) {
   box(window, 0, 0);
 
   int text_x = menu_get_width(menu) / 2 - 11;
-  int text_y = 4;
+  int text_y = 3;
   mvwaddstr(window, text_y, text_x, "CHOOSE YOUR DIFFICULTY");
+  mvwaddstr(window, text_y + 1, text_x, "======================");
 
-  int start_y = 7;
-  mvwaddstr(window, start_y + 0, 8, "Easy");
-  mvwaddstr(window, start_y + 2, 8, "Medium");
-  mvwaddstr(window, start_y + 4, 8, "Hard");
+  int start_x = 10;
+  int start_y = 6;
+  mvwaddstr(window, start_y + 0, start_x + 2, "Easy");
+  mvwaddstr(window, start_y + 2, start_x + 2, "Medium");
+  mvwaddstr(window, start_y + 4, start_x + 2, "Hard");
 
-  mvwaddch(window, start_y + (menu->menu_selection * 2), 6, '>');
+  mvwaddch(window, start_y + (menu->menu_selection * 2), start_x, '>');
 
 	wrefresh(window);
 }

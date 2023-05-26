@@ -50,6 +50,18 @@ void render_game_won(struct GameBoard* game_board, int left, int top) {
 }
 
 
+void render_menu_state(struct Menu* menu) {
+  int left = 2;
+  int top = 2;
+  menu_set_position(menu, left, top);
+  menu_erase(menu);
+  menu_render(menu);
+
+  curs_set(CURSOR_VISIBILITY_INVISIBLE);
+  move(0, 0);
+}
+
+
 /********************************************************************************
 * END Render
 ********************************************************************************/
@@ -267,28 +279,9 @@ void input_update_game_won(struct Inputs* inputs, struct Game* game, int input) 
 
 #if DEBUG_ENABLE_TEST
 
-struct DebugData {
-  WINDOW *window;
-} g_debug_data;
-
-
-struct Menu menu;
-
-
 void debug_init() {
-  menu_init(&menu);
-  menu_set_position(&menu, 1, 2);
 }
 
-
-void debug_loop() {
-  menu_erase(&menu);
-  curs_set(CURSOR_VISIBILITY_INVISIBLE);
-  move(0, 0);
-  menu_render(&menu);
-  int input = getch();
-  menu_update_input(&menu, input);
-}
 
 #endif
 
@@ -322,9 +315,16 @@ int main() {
 
   struct Terminal terminal;
 
+
+  struct Menu menu;
+  menu_init(&menu);
+
+
 #if DEBUG_ENABLE_TEST
   debug_init();
 #endif
+
+  game_state = GAME_STATE_MENU;
 
   // Loop to track cursor position
   while (true) {
@@ -334,7 +334,6 @@ int main() {
     struct Vector center = terminal_center(&terminal);
 
     // Update game state.
-    game_state = GAME_STATE_IN_GAME;
     switch (game_state) {
       case GAME_STATE_IN_GAME:
         if (game_board_is_lost(game_board)) {
@@ -362,10 +361,22 @@ int main() {
             "Please resize the terminal.\n"
         );
       } else {
-        game_render_in_game(&game, game_state, center);
+        switch (game_state) {
+          case GAME_STATE_IN_GAME:
+          case GAME_STATE_GAME_OVER:
+          case GAME_STATE_GAME_WON:
+            game_render_in_game(&game, game_state, center);
+            refresh();
+            break;
+          case GAME_STATE_MENU:
+            refresh();
+            render_menu_state(&menu);
+            break;
+          default:
+            log_fatal_f("Invalid game_state: %d", game_state);
+        }
       }
 
-      refresh();
     }
 
     int input = getch();
@@ -380,6 +391,9 @@ int main() {
         break;
       case GAME_STATE_GAME_WON:
         input_update_game_won(&inputs, &game, input);
+        break;
+      case GAME_STATE_MENU:
+        menu_update_input(&menu, input);
         break;
       default:
         log_fatal_f("Invalid game_state=%d", game_state);
