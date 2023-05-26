@@ -44,8 +44,10 @@ debug: build
 	gdb $(PROGRAM)
 
 try:
-	$(info $(OBJS))
+	$(info SRC_DIR=$(SRC_DIR))
+	$(info SOURCES=$(SOURCES))
+	$(info DEPS=$(DEPS))
 
 tags:
-	find src | xargs ctags 
+	ctags -R .
 
