@@ -18,6 +18,8 @@
 #include "game_board.h"
 #include "util.h"
 #include "terminal.h"
+#include "game.h"
+#include "input.h"
 
 /********************************************************************************
 * Main
@@ -31,259 +33,13 @@
 #define TERMINAL_MIN_HEIGHT 16
 
 
-/********************************************************************************
-* BEGIN Render
-********************************************************************************/
-
-
-void render_game_over(struct GameBoard* game_board, int left, int top) {
-  mvaddstr(top, left, "           ");
-  mvaddstr(top + 1, left, " GAME OVER ");
-  mvaddstr(top + 2, left, "           ");
-}
-
-
-void render_game_won(struct GameBoard* game_board, int left, int top) {
-  mvaddstr(top, left, "         ");
-  mvaddstr(top + 1, left, " YOU WON ");
-  mvaddstr(top + 2, left, "         ");
-}
-
-
-void render_menu_state(struct Terminal* terminal, struct Menu* menu) {
-  int left = terminal->width / 2 - menu_get_width(menu) / 2;
-  int top = terminal->height / 2 - menu_get_height(menu) / 2;
-  menu_set_position(menu, left, top);
-  menu_erase(menu);
-  menu_render(menu);
-
-  curs_set(CURSOR_VISIBILITY_INVISIBLE);
-  move(0, 0);
-}
-
-
-/********************************************************************************
-* END Render
-********************************************************************************/
-
-
-/********************************************************************************
-* BEGIN Game
-********************************************************************************/
-
-
-enum GameState {
-  GAME_STATE_IN_GAME,
-  GAME_STATE_GAME_OVER,
-  GAME_STATE_GAME_WON,
-  GAME_STATE_MENU
-};
-
-
-struct Game {
-  struct GameBoard game_board;
-  struct Cursor cursor; 
-};
-
-
-void game_init(struct Game* game, int width, int height) {
-  log_info_f("game_init(game, %d, %d)", width, height);
-  game->cursor.x = 0;
-  game->cursor.y = 0;
-  game_board_init(&game->game_board, width, height);
-}
-
-
-void game_render_in_game(
-    struct Game* game,
-    enum GameState game_state,
-    struct Vector center
-) {
-  struct GameBoard* game_board = &game->game_board;
-  struct Cursor* cursor = &game->cursor;
-  int game_board_left = center.x - (game_board->width + 2) / 2;
-  int game_board_top = center.y - (game_board->height + 2) / 2;
-  const int cursor_x_offset = 1;
-  const int cursor_y_offset = 1;
-
-  game_board_render(game_board, game_board_left, game_board_top);
-
-  move(
-      cursor->y + cursor_y_offset + game_board_top,
-      cursor->x + cursor_x_offset + game_board_left
-  );
-  switch (game_state) {
-    case GAME_STATE_IN_GAME:
-      curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
-      break;
-    case GAME_STATE_GAME_OVER:
-      curs_set(CURSOR_VISIBILITY_INVISIBLE);
-      render_game_over(
-          game_board,
-          game_board_left + game_board->width / 2 - 4,
-          game_board_top + game_board->height / 2
-          );
-      break;
-    case GAME_STATE_GAME_WON:
-      curs_set(CURSOR_VISIBILITY_INVISIBLE);
-      render_game_won(
-          game_board,
-          game_board_left + game_board->width / 2 - 3,
-          game_board_top + game_board->height / 2
-          );
-      break;
-    default:
-      log_fatal_f("Invalid game_state=%d", game_state);
-  }
-}
-
-
-/********************************************************************************
-* END Game
-********************************************************************************/
-
-
-struct Vector term_get_size(void) {
-  struct Vector empty_vector;
-  empty_vector.x = 0;
-  empty_vector.y = 0;
-
-  char const *const term = getenv("TERM");
-  if (term == NULL) {
-    log_fatal("TERM environment variable not set\n" );
-    return empty_vector;
-  }
-  log_info_f("TERM=%s", term);
-
-  char const *const cterm_path = ctermid(NULL);
-  if (cterm_path == NULL || cterm_path[0] == '\0') {
-    log_fatal("ctermid() failed\n");
-    return empty_vector;
-  }
-  log_info_f("cterm_path=%s", cterm_path);
-
-  int tty_fd = open(cterm_path, O_RDWR);
-  if (tty_fd == -1) {
-    log_fatal_f("open(\"%s\") failed (%d): %s\n", cterm_path, errno, strerror(errno));
-    return empty_vector;
-  }
-
-  int setupterm_err;
-  if (setupterm((char*)term, tty_fd, &setupterm_err) == ERR) {
-    switch (setupterm_err) {
-      case -1:
-        log_fatal("setupterm() failed: terminfo database not found\n");
-        goto cleanup;
-      case 0:
-        log_fatal_f("setupterm() failed: TERM=%s not found in database\n", term);
-        goto cleanup;
-      case 1:
-        log_fatal("setupterm() failed: terminal is hardcopy\n");
-        goto cleanup;
-    } // switch
-  }
-
-  int cols = tigetnum("cols");
-  if (cols < 0) {
-    log_fatal_f("tigetnum(\"cols\") failed (%d)\n", cols);
-  }
-
-  int l = tigetnum("lines");
-  if (l < 0) {
-    log_fatal_f("tigetnum(\"lines\") failed (%d)\n", l);
-  }
-
-cleanup:
-  if (tty_fd != -1) close(tty_fd);
-  struct Vector v;
-  v.x = cols < 0 ? 0 : cols;
-  v.y = l < 0 ? 0 : l;
-
-  char buf[256];
-  vector_as_string(buf, v);
-  log_info_f("Terminal size: %s", buf);
-  return v;
-}
-
-
-struct Inputs {
-  bool is_quit;
-};
-
-
-void input_init(struct Inputs* inputs) {
-  inputs->is_quit = false;
-}
-
-
-void input_update_in_game(struct Inputs* inputs, struct Game* game, int input) {
-  struct GameBoard* game_board = &game->game_board;
-  struct Cursor* cursor = &game->cursor;
-  switch (input) {
-    case KEY_DOWN:
-      game_board_move_cursor(game_board, cursor, 0, 1);
-      cursor_dump(cursor);
-      break;
-    case KEY_UP:
-      game_board_move_cursor(game_board, cursor, 0, -1);
-      cursor_dump(cursor);
-      break;
-    case KEY_LEFT:
-      game_board_move_cursor(game_board, cursor, -1, 0);
-      cursor_dump(cursor);
-      break;
-    case KEY_RIGHT:
-      game_board_move_cursor(game_board, cursor, 1, 0);
-      cursor_dump(cursor);
-      break;
-    case ' ':
-      log_info("Space key pressed.");
-      game_board_play_cell(game_board, cursor->x, cursor->y);
-      break;
-    case 'q':
-      log_info("Q key pressed.");
-      inputs->is_quit = true;
-      break;
-    case 'o':
-      log_info("O key pressed.");
-      game_board_switch_ok_marker(game_board, cursor->x, cursor->y);
-      break;
-    case 'x':
-      log_info("X key pressed.");
-      game_board_switch_mine_marker(game_board, cursor->x, cursor->y);
-      break;
-  }
-}
-
-
-
-void input_update_game_over(struct Inputs* inputs, struct Game* game, int input) {
-  switch (input) {
-    case 'q':
-      log_info("Q key pressed.");
-      inputs->is_quit = true;
-      break;
-  }
-}
-
-
-void input_update_game_won(struct Inputs* inputs, struct Game* game, int input) {
-  switch (input) {
-    case 'q':
-      log_info("Q key pressed.");
-      inputs->is_quit = true;
-      break;
-  }
-}
-
-
 #if DEBUG_ENABLE_TEST
 
 void debug_init() {
 }
 
-
 #endif
+
 
 
 int main() {
@@ -300,31 +56,23 @@ int main() {
   struct Game game;
   struct GameBoard* game_board = &game.game_board;
 
-  int width = 15;
-  int height = 9;
-  game_init(&game, width, height);
+  game_init_easy_mode(&game);
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
-  int bomb_pourcentage = 10;
-  game_board_setup_game(game_board, bomb_pourcentage);
 
-  enum GameState game_state = GAME_STATE_IN_GAME;
+  enum GameState game_state = GAME_STATE_MENU;
 
   struct Inputs inputs;
   input_init(&inputs);
 
   struct Terminal terminal;
 
-
   struct Menu menu;
   menu_init(&menu);
-
 
 #if DEBUG_ENABLE_TEST
   debug_init();
 #endif
-
-  game_state = GAME_STATE_MENU;
 
   // Loop to track cursor position
   while (true) {
@@ -373,12 +121,12 @@ int main() {
         break;
       case GAME_STATE_GAME_OVER:
         input_update_game_over(&inputs, &game, input);
-        game_init(&game, width, height);
-        game_board_setup_game(game_board, bomb_pourcentage);
-        break;
+        game_state = GAME_STATE_MENU;
+        continue;
       case GAME_STATE_GAME_WON:
         input_update_game_won(&inputs, &game, input);
-        break;
+        game_state = GAME_STATE_MENU;
+        continue;
       case GAME_STATE_MENU:
         menu_command = menu_update_input(&menu, input);
         break;
@@ -403,8 +151,15 @@ int main() {
         // State change based on events.
         switch (menu_command) {
           case MENU_COMMAND_SELECT_GAME_EASY:
+            game_init_easy_mode(&game);
+            game_state = GAME_STATE_IN_GAME;
+            break;
           case MENU_COMMAND_SELECT_GAME_MEDIUM:
+            game_init_medium_mode(&game);
+            game_state = GAME_STATE_IN_GAME;
+            break;
           case MENU_COMMAND_SELECT_GAME_HARD:
+            game_init_hard_mode(&game);
             game_state = GAME_STATE_IN_GAME;
             break;
           case MENU_COMMAND_DO_NOTHING:
