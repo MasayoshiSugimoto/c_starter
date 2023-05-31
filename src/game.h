@@ -48,51 +48,28 @@ void game_render_in_game(
       cursor->y + cursor_y_offset + game_board_top,
       cursor->x + cursor_x_offset + game_board_left
   );
-  switch (game_state) {
-    case GAME_STATE_IN_GAME:
-      curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
-      break;
-    case GAME_STATE_GAME_OVER:
-      curs_set(CURSOR_VISIBILITY_INVISIBLE);
-      render_game_over(
-          game_board,
-          game_board_left + game_board->width / 2 - 4,
-          game_board_top + game_board->height / 2
-          );
-      break;
-    case GAME_STATE_GAME_WON:
-      curs_set(CURSOR_VISIBILITY_INVISIBLE);
-      render_game_won(
-          game_board,
-          game_board_left + game_board->width / 2 - 3,
-          game_board_top + game_board->height / 2
-          );
-      break;
-    default:
-      log_fatal_f("Invalid game_state=%d", game_state);
-  }
 }
 
 
 void game_init_easy_mode(struct Game* game) {
-  int width = 8;
-  int height = 4;
+  int width = 9;
+  int height = 5;
   game_init(game, width, height);
   game_board_setup_game(&game->game_board, BOMB_POURCENTAGE);
 }
 
 
 void game_init_medium_mode(struct Game* game) {
-  int width = 16;
-  int height = 8;
+  int width = 17;
+  int height = 9;
   game_init(game, width, height);
   game_board_setup_game(&game->game_board, BOMB_POURCENTAGE);
 }
 
 
 void game_init_hard_mode(struct Game* game) {
-  int width = 32;
-  int height = 16;
+  int width = 31;
+  int height = 15;
   game_init(game, width, height);
   game_board_setup_game(&game->game_board, BOMB_POURCENTAGE);
 }

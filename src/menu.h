@@ -4,6 +4,7 @@
 #include <curses.h>
 #include <ncurses.h>
 #include "log.h"
+#include "game_window.h"
 
 
 #define MENU_WIDTH 30
@@ -34,12 +35,8 @@ const char* MENU_SELECTION_NAMES[] = {
 
 
 struct Menu {
-  WINDOW* window;
   enum MenuSelection menu_selection;
 };
-
-
-int g_menu_warning_suppressor;  // This variable is just there to avoid warnings.
 
 
 const char* menu_selection_as_string(enum MenuSelection selection) {
@@ -56,51 +53,25 @@ enum MenuCommand menu_command_from_selection(enum MenuSelection selection) {
 }
 
 
+struct GameWindow* menu_get_window() {
+  return &g_game_windows[GAME_WINDOW_ID_MENU];
+}
+
+
 void menu_init(struct Menu* menu) {
-	int width = MENU_WIDTH;
-  int height = MENU_HEIGHT;
-	int starty = 0;
-	int startx = 0;
-
-	menu->window = newwin(height, width, starty, startx);
   menu->menu_selection = MENU_SELECTION_MEDIUM;
-}
-
-
-void menu_reset_window(struct Menu* menu) {
-	int width = MENU_WIDTH;
-  int height = MENU_HEIGHT;
-	int starty = 0;
-	int startx = 0;
-  if (menu->window != NULL) delwin(menu->window);
-	menu->window = newwin(height, width, starty, startx);
-}
-
-
-int menu_get_width(struct Menu* menu) {
-  int width;
-  getmaxyx(menu->window, g_menu_warning_suppressor, width);
-  return width;
-}
-
-
-int menu_get_height(struct Menu* menu) {
-  int height;
-  getmaxyx(menu->window, height, g_menu_warning_suppressor);
-  return height;
-}
-
-
-void menu_set_position(struct Menu* menu, int x, int y) {
-  mvwin(menu->window, y, x);
+  struct GameWindow* game_window = menu_get_window();
+  game_window->width = MENU_WIDTH;
+  game_window->height = MENU_HEIGHT;
 }
 
 
 void menu_render(struct Menu* menu) {
-  WINDOW* window = menu->window;
-  box(window, 0, 0);
+  struct GameWindow* game_window = menu_get_window();
 
-  int text_x = menu_get_width(menu) / 2 - 11;
+  WINDOW* window = game_window->window;
+
+  int text_x = game_window->width / 2 - 11;
   int text_y = 3;
   mvwaddstr(window, text_y, text_x, "CHOOSE YOUR DIFFICULTY");
   mvwaddstr(window, text_y + 1, text_x, "======================");
@@ -111,14 +82,8 @@ void menu_render(struct Menu* menu) {
   mvwaddstr(window, start_y + 2, start_x + 2, "Medium");
   mvwaddstr(window, start_y + 4, start_x + 2, "Hard");
 
+  // Render cursor.
   mvwaddch(window, start_y + (menu->menu_selection * 2), start_x, '>');
-
-	wrefresh(window);
-}
-
-
-void menu_erase(struct Menu* menu) {
-  werase(menu->window);
 }
 
 

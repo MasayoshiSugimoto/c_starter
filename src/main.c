@@ -20,6 +20,7 @@
 #include "terminal.h"
 #include "game.h"
 #include "input.h"
+#include "game_window.h"
 
 /********************************************************************************
 * Main
@@ -28,7 +29,7 @@
 #define DEFAULT_TEXT_BUF 512
 
 #define DEBUG_GAME_BOARD_SHOW_ALL false
-#define DEBUG_ENABLE_TEST true
+#define DEBUG_ENABLE_TEST false
 
 #define TERMINAL_MIN_HEIGHT 16
 
@@ -36,6 +37,32 @@
 #if DEBUG_ENABLE_TEST
 
 void debug_init() {
+  log_info("DEBUG MODE ON");
+  log_info("=============\n");
+
+  game_window_init();
+
+  struct Terminal terminal;
+  terminal_init(&terminal);
+
+  while (true) {
+    erase();
+
+    game_window_enable_only(GAME_WINDOW_ID_MENU);
+    game_window_prepare_render();
+    struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_MENU];
+    game_window->left = terminal.width / 2 - game_window->left / 2;
+    game_window->top = terminal.height / 2 - game_window->top / 2;
+
+    refresh();
+    game_window_render();
+
+//    curs_set(CURSOR_VISIBILITY_INVISIBLE);
+//    move(0, 0);
+
+    getch();  // Wait for resize.
+  }
+
 }
 
 #endif
@@ -56,7 +83,7 @@ int main() {
   struct Game game;
   struct GameBoard* game_board = &game.game_board;
 
-  game_init_easy_mode(&game);
+  game_init_medium_mode(&game);
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
 
@@ -67,8 +94,12 @@ int main() {
 
   struct Terminal terminal;
 
+  game_window_init();
+  render_game_won_init();
+
   struct Menu menu;
   menu_init(&menu);
+  render_game_over_init();
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -89,27 +120,74 @@ int main() {
       );
       refresh();
       getch();  // Wait for resize.
-      menu_reset_window(&menu);
       continue;
     }
 
 
     {  // Render.
       erase();
+      game_window_erase();
       switch (game_state) {
         case GAME_STATE_IN_GAME:
+          game_render_in_game(&game, game_state, center);
+          game_window_disable_all();
+          curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
+          break;
         case GAME_STATE_GAME_OVER:
+          game_render_in_game(&game, game_state, center);
+
+          game_window_enable_only(GAME_WINDOW_ID_GAME_OVER);
+          {
+            struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_OVER];
+            int left = terminal.width / 2 - game_window->width / 2;
+            int top = terminal.height / 2 - game_window->height / 2;
+            WINDOW* window = game_window->window;
+            mvwin(window, top, left);
+            wresize(window, game_window->height, game_window->width);
+            box(window, 0, 0);
+            render_game_over(game_board);
+          }
+          curs_set(CURSOR_VISIBILITY_INVISIBLE);
+          move(0, 0);
+          break;
         case GAME_STATE_GAME_WON:
           game_render_in_game(&game, game_state, center);
-          refresh();
+
+          game_window_enable_only(GAME_WINDOW_ID_GAME_WON);
+          {
+            struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
+            int left = terminal.width / 2 - game_window->width / 2;
+            int top = terminal.height / 2 - game_window->height / 2;
+            WINDOW* window = game_window->window;
+            mvwin(window, top, left);
+            wresize(window, game_window->height, game_window->width);
+            box(window, 0, 0);
+            render_game_won(game_board, left, top);
+          }
+          curs_set(CURSOR_VISIBILITY_INVISIBLE);
+          move(0, 0);
           break;
         case GAME_STATE_MENU:
-          refresh();
-          render_menu_state(&terminal, &menu);
+          game_window_enable_only(GAME_WINDOW_ID_MENU);
+          {
+            struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_MENU];
+            int left = terminal.width / 2 - game_window->width / 2;
+            int top = terminal.height / 2 - game_window->height / 2;
+            WINDOW* window = game_window->window;
+            mvwin(window, top, left);
+            wresize(window, game_window->height, game_window->width);
+            box(window, 0, 0);
+            menu_render(&menu);
+          }
+
+          curs_set(CURSOR_VISIBILITY_INVISIBLE);
+          move(0, 0);
           break;
         default:
           log_fatal_f("Invalid game_state: %d", game_state);
       }
+      refresh();
+      game_window_render();
     }
 
     // Update inputs.
