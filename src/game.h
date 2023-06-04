@@ -12,7 +12,17 @@ enum GameState {
   GAME_STATE_IN_GAME,
   GAME_STATE_GAME_OVER,
   GAME_STATE_GAME_WON,
-  GAME_STATE_MENU
+  GAME_STATE_MENU,
+  GAME_STATE_MAX
+};
+
+
+const char* g_game_state_strings[] = {
+  "GAME_STATE_IN_GAME",
+  "GAME_STATE_GAME_OVER",
+  "GAME_STATE_GAME_WON",
+  "GAME_STATE_MENU",
+  "GAME_STATE_MAX"
 };
 
 

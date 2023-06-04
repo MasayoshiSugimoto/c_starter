@@ -21,6 +21,7 @@
 #include "game.h"
 #include "input.h"
 #include "game_window.h"
+#include "game_menu.h"
 
 /********************************************************************************
 * Main
@@ -100,6 +101,7 @@ int main() {
   struct Menu menu;
   menu_init(&menu);
   render_game_over_init();
+  game_menu_init();
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -124,9 +126,18 @@ int main() {
     }
 
 
-    {  // Render.
-      erase();
-      game_window_erase();
+    // Render
+    erase();
+    game_window_erase();
+    render_help_menu();
+    if (game_menu_is_enabled()) {
+      log_info("Game menu is enabled.");
+      game_window_enable_only(GAME_WINDOW_ID_GAME_MENU);
+      game_menu_render(terminal.width / 2, terminal.height / 2);
+
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+    } else {
       switch (game_state) {
         case GAME_STATE_IN_GAME:
           game_render_in_game(&game, game_state, center);
@@ -186,68 +197,85 @@ int main() {
         default:
           log_fatal_f("Invalid game_state: %d", game_state);
       }
-      refresh();
-      game_window_render();
     }
+    refresh();
+    game_window_render();
 
     // Update inputs.
     int input = getch();
     enum MenuCommand menu_command = MENU_COMMAND_DO_NOTHING;
-    switch (game_state) {
-      case GAME_STATE_IN_GAME:
-        input_update_in_game(&inputs, &game, input);
-        break;
-      case GAME_STATE_GAME_OVER:
-        input_update_game_over(&inputs, &game, input);
-        game_state = GAME_STATE_MENU;
-        continue;
-      case GAME_STATE_GAME_WON:
-        input_update_game_won(&inputs, &game, input);
-        game_state = GAME_STATE_MENU;
-        continue;
-      case GAME_STATE_MENU:
-        menu_command = menu_update_input(&menu, input);
-        break;
-      default:
-        log_fatal_f("Invalid game_state=%d", game_state);
+    enum GameMenuCommand game_menu_command = GAME_MENU_COMMAND_MAX;
+    if (game_menu_is_enabled()) {
+      game_menu_command = game_menu_update_input(input);
+      if (game_menu_command == GAME_MENU_QUIT) inputs.is_quit = true;
+    } else {
+      switch (game_state) {
+        case GAME_STATE_IN_GAME:
+          input_update_in_game(&inputs, &game, input);
+          break;
+        case GAME_STATE_GAME_OVER:
+          input_update_game_over(&inputs, &game, input);
+          break;
+        case GAME_STATE_GAME_WON:
+          input_update_game_won(&inputs, &game, input);
+          break;
+        case GAME_STATE_MENU:
+          menu_command = menu_update_input(&menu, input);
+          break;
+        default:
+          log_fatal_f("Invalid game_state=%d", game_state);
+      }
     }
     if (inputs.is_quit) break;
 
     // Update game state.
-    switch (game_state) {
-      case GAME_STATE_IN_GAME:
-        if (game_board_is_lost(game_board)) {
-          game_state = GAME_STATE_GAME_OVER;
-        } else if (game_board_is_win(game_board)) {
-          game_state = GAME_STATE_GAME_WON;
+    if (game_menu_is_enabled()) {
+      log_info("Game menu is enabled.");
+      if (game_menu_command < GAME_MENU_COMMAND_MAX) {
+        enum GameState next = game_menu_update_game_state(game_menu_command);
+        if (next < GAME_STATE_MAX) {
+          game_state = next;
         }
-        break;
-      case GAME_STATE_GAME_OVER:
-      case GAME_STATE_GAME_WON:
-        break;
-      case GAME_STATE_MENU:
-        // State change based on events.
-        switch (menu_command) {
-          case MENU_COMMAND_SELECT_GAME_EASY:
-            game_init_easy_mode(&game);
-            game_state = GAME_STATE_IN_GAME;
-            break;
-          case MENU_COMMAND_SELECT_GAME_MEDIUM:
-            game_init_medium_mode(&game);
-            game_state = GAME_STATE_IN_GAME;
-            break;
-          case MENU_COMMAND_SELECT_GAME_HARD:
-            game_init_hard_mode(&game);
-            game_state = GAME_STATE_IN_GAME;
-            break;
-          case MENU_COMMAND_DO_NOTHING:
-            break;
-        }
-        break;
-      default:
-        log_fatal_f("Invalid game_state: %d", game_state);
+      }
+    } else {
+      log_info("Game menu is disabled.");
+      switch (game_state) {
+        case GAME_STATE_IN_GAME:
+          if (game_board_is_lost(game_board)) {
+            game_state = GAME_STATE_GAME_OVER;
+          } else if (game_board_is_win(game_board)) {
+            game_state = GAME_STATE_GAME_WON;
+          }
+          break;
+        case GAME_STATE_GAME_OVER:
+        case GAME_STATE_GAME_WON:
+          game_menu_enable();
+          break;
+        case GAME_STATE_MENU:
+          // State change based on events.
+          switch (menu_command) {
+            case MENU_COMMAND_SELECT_GAME_EASY:
+              game_init_easy_mode(&game);
+              game_state = GAME_STATE_IN_GAME;
+              break;
+            case MENU_COMMAND_SELECT_GAME_MEDIUM:
+              game_init_medium_mode(&game);
+              game_state = GAME_STATE_IN_GAME;
+              break;
+            case MENU_COMMAND_SELECT_GAME_HARD:
+              game_init_hard_mode(&game);
+              game_state = GAME_STATE_IN_GAME;
+              break;
+            case MENU_COMMAND_DO_NOTHING:
+              break;
+          }
+          break;
+        default:
+          log_fatal_f("Invalid game_state: %d", game_state);
+      }
     }
 
+    log_info_f("Game state: %s", g_game_state_strings[game_state]);
   }
 
   endwin();  // End ncurses.

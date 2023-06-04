@@ -28,5 +28,10 @@ void render_game_won(struct GameBoard* game_board, int left, int top) {
 }
 
 
+void render_help_menu() {
+  mvaddstr(0, 0, "Press `Esc` to display the menu.");
+}
+
+
 #endif
 
