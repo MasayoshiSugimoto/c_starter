@@ -22,7 +22,7 @@ void render_game_won_init() {
 }
 
 
-void render_game_won(struct GameBoard* game_board, int left, int top) {
+void render_game_won(struct GameBoard* game_board) {
   struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
   mvwaddstr(game_window->window, 1, 1, " YOU WON ");
 }

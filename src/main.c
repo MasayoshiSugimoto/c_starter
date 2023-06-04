@@ -119,8 +119,7 @@ void main_render(
         game_render_in_game(game, game_state, center);
 
         main_setup_window(GAME_WINDOW_ID_GAME_WON, center);
-        struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
-        render_game_won(&game->game_board, game_window->left, game_window->top);
+        render_game_won(&game->game_board);
 
         curs_set(CURSOR_VISIBILITY_INVISIBLE);
         move(0, 0);
