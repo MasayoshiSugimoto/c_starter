@@ -70,7 +70,6 @@ void debug_init() {
 
 
 void main_render(
-    struct Terminal* terminal,
     enum GameState game_state,
     struct Game* game,
     struct Vector center,
@@ -82,7 +81,7 @@ void main_render(
   if (game_menu_is_enabled()) {
     log_info("Game menu is enabled.");
     game_window_enable_only(GAME_WINDOW_ID_GAME_MENU);
-    game_menu_render(terminal->width / 2, terminal->height / 2);
+    game_menu_render(center.x, center.y);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
@@ -99,8 +98,8 @@ void main_render(
         game_window_enable_only(GAME_WINDOW_ID_GAME_OVER);
         {
           struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_OVER];
-          int left = terminal->width / 2 - game_window->width / 2;
-          int top = terminal->height / 2 - game_window->height / 2;
+          int left = center.x - game_window->width / 2;
+          int top = center.y - game_window->height / 2;
           WINDOW* window = game_window->window;
           mvwin(window, top, left);
           wresize(window, game_window->height, game_window->width);
@@ -116,8 +115,8 @@ void main_render(
         game_window_enable_only(GAME_WINDOW_ID_GAME_WON);
         {
           struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
-          int left = terminal->width / 2 - game_window->width / 2;
-          int top = terminal->height / 2 - game_window->height / 2;
+          int left = center.x - game_window->width / 2;
+          int top = center.y - game_window->height / 2;
           WINDOW* window = game_window->window;
           mvwin(window, top, left);
           wresize(window, game_window->height, game_window->width);
@@ -131,8 +130,8 @@ void main_render(
         game_window_enable_only(GAME_WINDOW_ID_MENU);
         {
           struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_MENU];
-          int left = terminal->width / 2 - game_window->width / 2;
-          int top = terminal->height / 2 - game_window->height / 2;
+          int left = center.x - game_window->width / 2;
+          int top = center.y - game_window->height / 2;
           WINDOW* window = game_window->window;
           mvwin(window, top, left);
           wresize(window, game_window->height, game_window->width);
@@ -208,7 +207,7 @@ int main() {
       continue;
     }
 
-    main_render(&terminal, game_state, &game, center, &menu);
+    main_render(game_state, &game, center, &menu);
 
     // Update inputs.
     int input = getch();
