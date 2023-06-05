@@ -2,6 +2,9 @@
 #define GAME_WINDOW_H
 
 
+#include "vector.h"
+
+
 /**
  * Order of this enum will define the Z axis when rendered.
  */
@@ -93,6 +96,19 @@ void game_window_erase() {
   for (int i = 0; i < GAME_WINDOW_ID_MAX; i++) {
     werase(g_game_windows[i].window);
   }
+}
+
+
+WINDOW* main_setup_window(enum GameWindowId game_window_id, struct Vector center) {
+  game_window_enable_only(game_window_id);
+  struct GameWindow* game_window = &g_game_windows[game_window_id];
+  game_window->left = center.x - game_window->width / 2;
+  game_window->top = center.y - game_window->height / 2;
+  WINDOW* window = game_window->window;
+  mvwin(window, game_window->top, game_window->left);
+  wresize(window, game_window->height, game_window->width);
+  box(window, 0, 0);
+  return window;
 }
 
 

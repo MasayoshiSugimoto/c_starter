@@ -22,6 +22,7 @@
 #include "input.h"
 #include "game_window.h"
 #include "game_menu.h"
+#include "render.h"
 
 /********************************************************************************
 * Main
@@ -67,78 +68,6 @@ void debug_init() {
 }
 
 #endif
-
-
-WINDOW* main_setup_window(enum GameWindowId game_window_id, struct Vector center) {
-  game_window_enable_only(game_window_id);
-  struct GameWindow* game_window = &g_game_windows[game_window_id];
-  game_window->left = center.x - game_window->width / 2;
-  game_window->top = center.y - game_window->height / 2;
-  WINDOW* window = game_window->window;
-  mvwin(window, game_window->top, game_window->left);
-  wresize(window, game_window->height, game_window->width);
-  box(window, 0, 0);
-  return window;
-}
-
-
-void main_render(
-    enum GameState game_state,
-    struct Game* game,
-    struct Vector center,
-    struct Menu* menu
-) {
-  erase();
-  game_window_erase();
-  render_help_menu();
-
-  if (game_menu_is_enabled()) {
-    log_info("Game menu is enabled.");
-    game_window_enable_only(GAME_WINDOW_ID_GAME_MENU);
-    game_menu_render(center.x, center.y);
-
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else {
-    switch (game_state) {
-      case GAME_STATE_IN_GAME:
-        game_render_in_game(game, game_state, center);
-        game_window_disable_all();
-        curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
-        break;
-      case GAME_STATE_GAME_OVER:
-        game_render_in_game(game, game_state, center);
-
-        main_setup_window(GAME_WINDOW_ID_GAME_OVER, center);
-        render_game_over(&game->game_board);
-
-        curs_set(CURSOR_VISIBILITY_INVISIBLE);
-        move(0, 0);
-        break;
-      case GAME_STATE_GAME_WON:
-        game_render_in_game(game, game_state, center);
-
-        main_setup_window(GAME_WINDOW_ID_GAME_WON, center);
-        render_game_won(&game->game_board);
-
-        curs_set(CURSOR_VISIBILITY_INVISIBLE);
-        move(0, 0);
-        break;
-      case GAME_STATE_MENU:
-        main_setup_window(GAME_WINDOW_ID_MENU, center);
-        menu_render(menu);
-
-        curs_set(CURSOR_VISIBILITY_INVISIBLE);
-        move(0, 0);
-        break;
-      default:
-        log_fatal_f("Invalid game_state: %d", game_state);
-    }
-  }
-  refresh();
-  game_window_render();
-}
-
 
 
 int main() {

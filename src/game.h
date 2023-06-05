@@ -2,9 +2,6 @@
 #define GAME_H
 
 
-#include "render.h"
-
-
 #define BOMB_POURCENTAGE 10
 
 
@@ -37,27 +34,6 @@ void game_init(struct Game* game, int width, int height) {
   game->cursor.x = 0;
   game->cursor.y = 0;
   game_board_init(&game->game_board, width, height);
-}
-
-
-void game_render_in_game(
-    struct Game* game,
-    enum GameState game_state,
-    struct Vector center
-) {
-  struct GameBoard* game_board = &game->game_board;
-  struct Cursor* cursor = &game->cursor;
-  int game_board_left = center.x - (game_board->width + 2) / 2;
-  int game_board_top = center.y - (game_board->height + 2) / 2;
-  const int cursor_x_offset = 1;
-  const int cursor_y_offset = 1;
-
-  game_board_render(game_board, game_board_left, game_board_top);
-
-  move(
-      cursor->y + cursor_y_offset + game_board_top,
-      cursor->x + cursor_x_offset + game_board_left
-  );
 }
 
 
