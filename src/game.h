@@ -26,6 +26,7 @@ const char* g_game_state_strings[] = {
 struct Game {
   struct GameBoard game_board;
   struct Cursor cursor; 
+  enum GameState game_state;
 };
 
 
@@ -34,6 +35,7 @@ void game_init(struct Game* game, int width, int height) {
   game->cursor.x = 0;
   game->cursor.y = 0;
   game_board_init(&game->game_board, width, height);
+  game->game_state = GAME_STATE_MENU;
 }
 
 

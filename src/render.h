@@ -54,12 +54,8 @@ void render_in_game(
 }
 
 
-void render(
-    enum GameState game_state,
-    struct Game* game,
-    struct Vector center,
-    struct Menu* menu
-) {
+void render(struct Game* game, struct Vector center, struct Menu* menu) {
+  enum GameState game_state = game->game_state;
   erase();
   game_window_erase();
   render_help_menu();

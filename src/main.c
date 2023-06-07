@@ -88,8 +88,6 @@ int main() {
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
 
-  enum GameState game_state = GAME_STATE_MENU;
-
   struct Inputs inputs;
   input_init(&inputs);
 
@@ -109,6 +107,8 @@ int main() {
 
   // Loop to track cursor position
   while (true) {
+    enum GameState game_state = game.game_state;
+
     terminal_init(&terminal);
     log_info_f("terminal={width:%d, height:%d}", terminal.width, terminal.height);
     struct Vector center = terminal_center(&terminal);
@@ -125,7 +125,7 @@ int main() {
       continue;
     }
 
-    render(game_state, &game, center, &menu);
+    render(&game, center, &menu);
 
     // Update inputs.
     int input = getch();
@@ -139,15 +139,15 @@ int main() {
       if (game_menu_command < GAME_MENU_COMMAND_MAX) {
         enum GameState next = game_menu_update_game_state(game_menu_command);
         if (next < GAME_STATE_MAX) {
-          game_state = next;
+          game.game_state = next;
         }
       }
     } else if (game_state == GAME_STATE_IN_GAME) {
       input_update_in_game(&inputs, &game, input);
       if (game_board_is_lost(game_board)) {
-        game_state = GAME_STATE_GAME_OVER;
+        game.game_state = GAME_STATE_GAME_OVER;
       } else if (game_board_is_win(game_board)) {
-        game_state = GAME_STATE_GAME_WON;
+        game.game_state = GAME_STATE_GAME_WON;
       }
     } else if (game_state == GAME_STATE_GAME_OVER) {
       input_update_game_over(&inputs, &game, input);
@@ -161,15 +161,15 @@ int main() {
       switch (menu_command) {
         case MENU_COMMAND_SELECT_GAME_EASY:
           game_init_easy_mode(&game);
-          game_state = GAME_STATE_IN_GAME;
+          game.game_state = GAME_STATE_IN_GAME;
           break;
         case MENU_COMMAND_SELECT_GAME_MEDIUM:
           game_init_medium_mode(&game);
-          game_state = GAME_STATE_IN_GAME;
+          game.game_state = GAME_STATE_IN_GAME;
           break;
         case MENU_COMMAND_SELECT_GAME_HARD:
           game_init_hard_mode(&game);
-          game_state = GAME_STATE_IN_GAME;
+          game.game_state = GAME_STATE_IN_GAME;
           break;
         case MENU_COMMAND_DO_NOTHING:
           break;
@@ -178,7 +178,7 @@ int main() {
       log_fatal_f("Invalid game_state=%d", game_state);
     }
 
-    log_info_f("Game state: %s", g_game_state_strings[game_state]);
+    log_info_f("Game state: %s", g_game_state_strings[game.game_state]);
   }
 
   endwin();  // End ncurses.
