@@ -125,7 +125,7 @@ int main() {
       continue;
     }
 
-    main_render(game_state, &game, center, &menu);
+    render(game_state, &game, center, &menu);
 
     // Update inputs.
     int input = getch();

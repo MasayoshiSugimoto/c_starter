@@ -54,7 +54,7 @@ void render_in_game(
 }
 
 
-void main_render(
+void render(
     enum GameState game_state,
     struct Game* game,
     struct Vector center,
