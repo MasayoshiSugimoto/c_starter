@@ -87,33 +87,28 @@ void menu_render(struct Menu* menu) {
 }
 
 
-enum MenuCommand menu_update_input(struct Menu* menu, int input) {
-  switch (input) {
-    case KEY_DOWN:
-      log_info("Down key pressed.");
-      menu->menu_selection = (menu->menu_selection + 1) % MENU_SELECTION_MAX;
-      log_info_f(
-          "menu->menu_selection=%s",
-          menu_selection_as_string(menu->menu_selection)
-      );
-      return MENU_COMMAND_DO_NOTHING;
-    case KEY_UP:
-      log_info("Up key pressed.");
-      int selection = menu->menu_selection - 1;
-      if (selection < 0) {
-        selection = MENU_SELECTION_HARD;
-      }
-      menu->menu_selection = selection;
-      log_info_f(
-          "menu->menu_selection=%s",
-          menu_selection_as_string(menu->menu_selection)
-      );
-      return MENU_COMMAND_DO_NOTHING;
-    case KEY_RESIZE:
-      return MENU_COMMAND_DO_NOTHING;
-    default:
-      return menu_command_from_selection(menu->menu_selection);
+
+void menu_move_cursor_up(struct Menu* menu) {
+  log_info("Up key pressed.");
+  if (menu->menu_selection == 0) {
+    menu->menu_selection = MENU_SELECTION_HARD;
+  } else {
+    menu->menu_selection = menu->menu_selection - 1;
   }
+  log_info_f(
+      "menu->menu_selection=%s",
+      menu_selection_as_string(menu->menu_selection)
+  );
+}
+
+
+void menu_move_cursor_down(struct Menu* menu) {
+  log_info("Down key pressed.");
+  menu->menu_selection = (menu->menu_selection + 1) % MENU_SELECTION_MAX;
+  log_info_f(
+      "menu->menu_selection=%s",
+      menu_selection_as_string(menu->menu_selection)
+  );
 }
 
 

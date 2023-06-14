@@ -74,30 +74,26 @@ void game_menu_render(int center_x, int center_y) {
 }
 
 
-enum GameMenuCommand game_menu_update_input(int input) {
-  int selected = g_game_menu.selected;
+void game_menu_move_cursor_up() {
+  log_info("Move cursor up.");
   int length = array_size(g_menu_items);
-  switch (input) {
-    case KEY_DOWN:
-      log_info("Down key pressed.");
-      selected = (selected + 1) % length;
-      log_info_f("selected=%s", g_menu_items[selected]);
-      g_game_menu.selected = selected;
-      return GAME_MENU_COMMAND_MAX;
-    case KEY_UP:
-      log_info("Up key pressed.");
-      selected--;
-      if (selected < 0) selected = length - 1;
-      log_info_f("selected=%s", g_menu_items[selected]);
-      g_game_menu.selected = selected;
-      return GAME_MENU_COMMAND_MAX;
-    case KEY_RESIZE:
-      log_info("Window resized.");
-      return GAME_MENU_COMMAND_MAX;
-    default:
-      log_info_f("`%s` validated.", g_menu_items[selected]);
-      return g_game_menu.selected;
-  }
+  int selected = g_game_menu.selected - 1;
+  if (selected < 0) selected = length - 1;
+  log_info_f("selected=%s", g_menu_items[selected]);
+  g_game_menu.selected = selected;
+}
+
+
+void game_menu_move_cursor_down() {
+  log_info("Move cursor down.");
+  int length = array_size(g_menu_items);
+  g_game_menu.selected = (g_game_menu.selected + 1) % length;
+  log_info_f("selected=%s", g_menu_items[g_game_menu.selected]);
+}
+
+
+enum GameMenuCommand game_menu_get_selected() {
+  return g_game_menu.selected;
 }
 
 
