@@ -70,42 +70,6 @@ void debug_init() {
 #endif
 
 
-enum MenuCommand menu_update_input(struct Menu* menu, int input) {
-  switch (input) {
-    case KEY_DOWN:
-      menu_move_cursor_down(menu);
-      return MENU_COMMAND_DO_NOTHING;
-    case KEY_UP:
-      menu_move_cursor_up(menu);
-      return MENU_COMMAND_DO_NOTHING;
-    case KEY_RESIZE:
-      return MENU_COMMAND_DO_NOTHING;
-    default:
-      return menu_command_from_selection(menu->menu_selection);
-  }
-}
-
-
-enum GameMenuCommand main_menu_update_input(int input) {
-  switch (input) {
-    case KEY_DOWN:
-      log_info("Down key pressed.");
-      game_menu_move_cursor_down();
-      return GAME_MENU_COMMAND_MAX;
-    case KEY_UP:
-      log_info("Up key pressed.");
-      game_menu_move_cursor_up();
-      return GAME_MENU_COMMAND_MAX;
-    case KEY_RESIZE:
-      log_info("Window resized.");
-      return GAME_MENU_COMMAND_MAX;
-    default:
-      log_info_f("Key pressed: %d", input);
-      return game_menu_get_selected();
-  }
-}
-
-
 enum GameState input_update(
     struct Game* game,
     struct Inputs* inputs,
@@ -119,7 +83,7 @@ enum GameState input_update(
 
   if (game_menu_is_enabled()) {
     log_info("Game menu is enabled.");
-    game_menu_command = main_menu_update_input(input);
+    game_menu_command = input_game_menu_update(input);
     if (game_menu_command == GAME_MENU_QUIT) return GAME_STATE_QUIT;
     if (game_menu_command < GAME_MENU_COMMAND_MAX) {
       return game_menu_update_game_state(game_menu_command);
@@ -138,7 +102,7 @@ enum GameState input_update(
     input_update_game_won(inputs, game, input);
     game_menu_enable();
   } else if (game_state == GAME_STATE_MENU) {
-    menu_command = menu_update_input(menu, input);
+    menu_command = input_menu_update(menu, input);
     // State change based on events.
     switch (menu_command) {
       case MENU_COMMAND_SELECT_GAME_EASY:

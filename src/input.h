@@ -2,6 +2,9 @@
 #define INPUT_H
 
 
+#include "game_menu.h"
+
+
 struct Inputs {
   bool is_quit;
 };
@@ -68,6 +71,42 @@ void input_update_game_won(struct Inputs* inputs, struct Game* game, int input) 
       log_info("Q key pressed.");
       inputs->is_quit = true;
       break;
+  }
+}
+
+
+enum MenuCommand input_menu_update(struct Menu* menu, int input) {
+  switch (input) {
+    case KEY_DOWN:
+      menu_move_cursor_down(menu);
+      return MENU_COMMAND_DO_NOTHING;
+    case KEY_UP:
+      menu_move_cursor_up(menu);
+      return MENU_COMMAND_DO_NOTHING;
+    case KEY_RESIZE:
+      return MENU_COMMAND_DO_NOTHING;
+    default:
+      return menu_command_from_selection(menu->menu_selection);
+  }
+}
+
+
+enum GameMenuCommand input_game_menu_update(int input) {
+  switch (input) {
+    case KEY_DOWN:
+      log_info("Down key pressed.");
+      game_menu_move_cursor_down();
+      return GAME_MENU_COMMAND_MAX;
+    case KEY_UP:
+      log_info("Up key pressed.");
+      game_menu_move_cursor_up();
+      return GAME_MENU_COMMAND_MAX;
+    case KEY_RESIZE:
+      log_info("Window resized.");
+      return GAME_MENU_COMMAND_MAX;
+    default:
+      log_info_f("Key pressed: %d", input);
+      return game_menu_get_selected();
   }
 }
 
