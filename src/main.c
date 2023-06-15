@@ -70,61 +70,6 @@ void debug_init() {
 #endif
 
 
-enum GameState input_update(
-    struct Game* game,
-    struct Inputs* inputs,
-    struct Menu* menu
-) {
-  int input = getch();
-  enum MenuCommand menu_command = MENU_COMMAND_DO_NOTHING;
-  enum GameMenuCommand game_menu_command = GAME_MENU_COMMAND_MAX;
-  enum GameState game_state = game->game_state;
-  struct GameBoard* game_board = &game->game_board;
-
-  if (game_menu_is_enabled()) {
-    log_info("Game menu is enabled.");
-    game_menu_command = input_game_menu_update(input);
-    if (game_menu_command == GAME_MENU_QUIT) return GAME_STATE_QUIT;
-    if (game_menu_command < GAME_MENU_COMMAND_MAX) {
-      return game_menu_update_game_state(game_menu_command);
-    }
-  } else if (game_state == GAME_STATE_IN_GAME) {
-    input_update_in_game(inputs, game, input);
-    if (game_board_is_lost(game_board)) {
-      return GAME_STATE_GAME_OVER;
-    } else if (game_board_is_win(game_board)) {
-      return GAME_STATE_GAME_WON;
-    }
-  } else if (game_state == GAME_STATE_GAME_OVER) {
-    input_update_game_over(inputs, game, input);
-    game_menu_enable();
-  } else if (game_state == GAME_STATE_GAME_WON) {
-    input_update_game_won(inputs, game, input);
-    game_menu_enable();
-  } else if (game_state == GAME_STATE_MENU) {
-    menu_command = input_menu_update(menu, input);
-    // State change based on events.
-    switch (menu_command) {
-      case MENU_COMMAND_SELECT_GAME_EASY:
-        game_init_easy_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_SELECT_GAME_MEDIUM:
-        game_init_medium_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_SELECT_GAME_HARD:
-        game_init_hard_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_DO_NOTHING:
-        break;
-    }
-  } else {
-    log_fatal_f("Invalid game_state=%d", game_state);
-  }
-
-  return GAME_STATE_MAX;
-}
-
-
 int main() {
   log_init();
 
@@ -142,9 +87,6 @@ int main() {
   game_init_medium_mode(&game);
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
-
-  struct Inputs inputs;
-  input_init(&inputs);
 
   struct Terminal terminal;
 
@@ -180,7 +122,7 @@ int main() {
 
     render(&game, center, &menu);
 
-    enum GameState game_state = input_update(&game, &inputs, &menu);
+    enum GameState game_state = input_update(&game, &menu);
     if (game_state < GAME_STATE_MAX) {
       game.game_state = game_state;
     }
