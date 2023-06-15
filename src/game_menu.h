@@ -97,10 +97,18 @@ enum GameMenuCommand game_menu_get_selected() {
 }
 
 
-enum GameState game_menu_update_game_state(enum GameMenuCommand command) {
-  if (command == GAME_MENU_COMMAND_MAX) return -1;
+bool game_menu_is_enabled() {
+  return g_game_menu.enabled;
+}
 
-  switch (command) {
+
+void game_menu_enable() {
+  g_game_menu.enabled = true;
+}
+
+
+enum GameState game_menu_validate() {
+  switch (g_game_menu.selected) {
     case GAME_MENU_RESUME:
       log_info("Resuming game.");
       g_game_menu.enabled = false;
@@ -114,20 +122,12 @@ enum GameState game_menu_update_game_state(enum GameMenuCommand command) {
       g_game_menu.enabled = false;
       return GAME_STATE_MAX;
     case GAME_MENU_QUIT:
-      log_fatal("Dead path reached.");
+      log_info("Quiting...");
+      return GAME_STATE_QUIT;
     default:
-      log_fatal_f("Invalid command: %d", command);
+      log_fatal_f("Invalid menu selection: %d", g_game_menu.selected);
   }
-}
-
-
-bool game_menu_is_enabled() {
-  return g_game_menu.enabled;
-}
-
-
-void game_menu_enable() {
-  g_game_menu.enabled = true;
+  return GAME_STATE_MAX;
 }
 
 

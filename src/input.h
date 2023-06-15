@@ -5,6 +5,13 @@
 #include "game_menu.h"
 
 
+enum InputCommand {
+  INPUT_COMMAND_DO_NOTHING,
+  INPUT_COMMAND_QUIT,
+  INPUT_COMMAND_MAX
+};
+
+
 bool input_update_in_game(struct Game* game, int input) {
   struct GameBoard* game_board = &game->game_board;
   struct Cursor* cursor = &game->cursor;
@@ -59,40 +66,34 @@ enum MenuCommand input_menu_update(struct Menu* menu, int input) {
 }
 
 
-enum GameMenuCommand input_game_menu_update(int input) {
+enum GameState input_game_menu_update(int input, enum GameState game_state) {
   switch (input) {
     case KEY_DOWN:
       log_info("Down key pressed.");
       game_menu_move_cursor_down();
-      return GAME_MENU_COMMAND_MAX;
+      return GAME_STATE_MAX;
     case KEY_UP:
       log_info("Up key pressed.");
       game_menu_move_cursor_up();
-      return GAME_MENU_COMMAND_MAX;
+      return GAME_STATE_MAX;
     case KEY_RESIZE:
       log_info("Window resized.");
-      return GAME_MENU_COMMAND_MAX;
+      return GAME_STATE_MAX;
     default:
       log_info_f("Key pressed: %d", input);
-      return game_menu_get_selected();
+      return game_menu_validate();
   }
 }
 
 
 enum GameState input_update(struct Game* game, struct Menu* menu) {
   int input = getch();
-  enum MenuCommand menu_command = MENU_COMMAND_DO_NOTHING;
-  enum GameMenuCommand game_menu_command = GAME_MENU_COMMAND_MAX;
   enum GameState game_state = game->game_state;
   struct GameBoard* game_board = &game->game_board;
 
   if (game_menu_is_enabled()) {
     log_info("Game menu is enabled.");
-    game_menu_command = input_game_menu_update(input);
-    if (game_menu_command == GAME_MENU_QUIT) return GAME_STATE_QUIT;
-    if (game_menu_command < GAME_MENU_COMMAND_MAX) {
-      return game_menu_update_game_state(game_menu_command);
-    }
+    return input_game_menu_update(input, game_state);
   } else if (game_state == GAME_STATE_IN_GAME) {
     input_update_in_game(game, input);
     if (game_board_is_lost(game_board)) {
@@ -105,7 +106,7 @@ enum GameState input_update(struct Game* game, struct Menu* menu) {
   } else if (game_state == GAME_STATE_GAME_WON) {
     game_menu_enable();
   } else if (game_state == GAME_STATE_MENU) {
-    menu_command = input_menu_update(menu, input);
+    enum MenuCommand menu_command = input_menu_update(menu, input);
     // State change based on events.
     switch (menu_command) {
       case MENU_COMMAND_SELECT_GAME_EASY:
