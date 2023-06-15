@@ -2,6 +2,9 @@
 #define GAME_H
 
 
+#include "game_board.h"
+
+
 #define BOMB_POURCENTAGE 10
 
 

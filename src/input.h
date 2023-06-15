@@ -50,19 +50,21 @@ bool input_update_in_game(struct Game* game, int input) {
 }
 
 
-enum MenuCommand input_menu_update(struct Menu* menu, int input) {
+bool input_menu_update(struct Menu* menu, int input, struct Game* game) {
+  bool is_new_game = false;
   switch (input) {
     case KEY_DOWN:
       menu_move_cursor_down(menu);
-      return MENU_COMMAND_DO_NOTHING;
+      break;
     case KEY_UP:
       menu_move_cursor_up(menu);
-      return MENU_COMMAND_DO_NOTHING;
+      break;
     case KEY_RESIZE:
-      return MENU_COMMAND_DO_NOTHING;
+      break;
     default:
-      return menu_command_from_selection(menu->menu_selection);
+      return menu_validate(menu, game);
   }
+  return is_new_game;
 }
 
 
@@ -106,21 +108,7 @@ enum GameState input_update(struct Game* game, struct Menu* menu) {
   } else if (game_state == GAME_STATE_GAME_WON) {
     game_menu_enable();
   } else if (game_state == GAME_STATE_MENU) {
-    enum MenuCommand menu_command = input_menu_update(menu, input);
-    // State change based on events.
-    switch (menu_command) {
-      case MENU_COMMAND_SELECT_GAME_EASY:
-        game_init_easy_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_SELECT_GAME_MEDIUM:
-        game_init_medium_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_SELECT_GAME_HARD:
-        game_init_hard_mode(game);
-        return GAME_STATE_IN_GAME;
-      case MENU_COMMAND_DO_NOTHING:
-        break;
-    }
+    if (input_menu_update(menu, input, game)) return GAME_STATE_IN_GAME;
   } else {
     log_fatal_f("Invalid game_state=%d", game_state);
   }

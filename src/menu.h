@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include "log.h"
 #include "game_window.h"
+#include "game.h"
 
 
 #define MENU_WIDTH 30
@@ -16,14 +17,6 @@ enum MenuSelection {
   MENU_SELECTION_MEDIUM = 1,
   MENU_SELECTION_HARD = 2,
   MENU_SELECTION_MAX = 3
-};
-
-
-enum MenuCommand {
-  MENU_COMMAND_DO_NOTHING,
-  MENU_COMMAND_SELECT_GAME_EASY,
-  MENU_COMMAND_SELECT_GAME_MEDIUM,
-  MENU_COMMAND_SELECT_GAME_HARD
 };
 
 
@@ -45,11 +38,6 @@ const char* menu_selection_as_string(enum MenuSelection selection) {
   } else {
     log_fatal_f("Invalid menu selection: %d", selection);
   }
-}
-
-
-enum MenuCommand menu_command_from_selection(enum MenuSelection selection) {
-  return MENU_COMMAND_SELECT_GAME_EASY + selection;
 }
 
 
@@ -109,6 +97,28 @@ void menu_move_cursor_down(struct Menu* menu) {
       "menu->menu_selection=%s",
       menu_selection_as_string(menu->menu_selection)
   );
+}
+
+
+bool menu_validate(struct Menu* menu, struct Game* game) {
+  bool is_new_game = false;
+  switch (menu->menu_selection) {
+    case MENU_SELECTION_EASY:
+      game_init_easy_mode(game);
+      is_new_game = true;
+      break;
+    case MENU_SELECTION_MEDIUM:
+      game_init_medium_mode(game);
+      is_new_game = true;
+      break;
+    case MENU_SELECTION_HARD:
+      game_init_hard_mode(game);
+      is_new_game = true;
+      break;
+    default:
+      log_fatal_f("Invalid menu selection: %d", menu->menu_selection);
+  }
+  return is_new_game;
 }
 
 

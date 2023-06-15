@@ -3,6 +3,7 @@
 
 
 #include "util.h"
+#include "cursor.h"
 
 
 #define BOARD_CELL_TYPE_EMPTY ' '
