@@ -13,7 +13,7 @@ LIBS = -lcurses -lncurses
 .SUFFIXES:
 
 $(PROGRAM): $(OBJS)
-	$(CC) $(CFLAGS) $? $(LIBS) -o $@
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 .build:
 	mkdir .build
