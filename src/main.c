@@ -20,9 +20,9 @@
 #include "terminal.h"
 #include "game.h"
 #include "input.h"
-#include "game_window.h"
 #include "game_menu.h"
 #include "render.h"
+#include "window_manager.h"
 
 /********************************************************************************
 * Main
@@ -42,28 +42,6 @@ void debug_init() {
   log_info("DEBUG MODE ON");
   log_info("=============\n");
 
-  game_window_init();
-
-  struct Terminal terminal;
-  terminal_init(&terminal);
-
-  while (true) {
-    erase();
-
-    game_window_enable_only(GAME_WINDOW_ID_MENU);
-    game_window_prepare_render();
-    struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_MENU];
-    game_window->left = terminal.width / 2 - game_window->left / 2;
-    game_window->top = terminal.height / 2 - game_window->top / 2;
-
-    refresh();
-    game_window_render();
-
-//    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-//    move(0, 0);
-
-    getch();  // Wait for resize.
-  }
 
 }
 
@@ -90,7 +68,7 @@ int main() {
 
   struct Terminal terminal;
 
-  game_window_init();
+  window_manager_init();
   render_game_won_init();
 
   struct Menu menu;

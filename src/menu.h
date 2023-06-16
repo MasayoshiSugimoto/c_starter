@@ -4,7 +4,7 @@
 #include <curses.h>
 #include <ncurses.h>
 #include "log.h"
-#include "game_window.h"
+#include "window_manager.h"
 #include "game.h"
 
 
@@ -41,25 +41,15 @@ const char* menu_selection_as_string(enum MenuSelection selection) {
 }
 
 
-struct GameWindow* menu_get_window() {
-  return &g_game_windows[GAME_WINDOW_ID_MENU];
-}
-
-
 void menu_init(struct Menu* menu) {
   menu->menu_selection = MENU_SELECTION_MEDIUM;
-  struct GameWindow* game_window = menu_get_window();
-  game_window->width = MENU_WIDTH;
-  game_window->height = MENU_HEIGHT;
+  window_manager_set_width(WINDOW_ID_MENU, MENU_WIDTH);
+  window_manager_set_height(WINDOW_ID_MENU, MENU_HEIGHT);
 }
 
 
-void menu_render(struct Menu* menu) {
-  struct GameWindow* game_window = menu_get_window();
-
-  WINDOW* window = game_window->window;
-
-  int text_x = game_window->width / 2 - 11;
+void menu_render(struct Menu* menu, WINDOW* window) {
+  int text_x = window_manager_get_width(WINDOW_ID_MENU) / 2 - 11;
   int text_y = 3;
   mvwaddstr(window, text_y, text_x, "CHOOSE YOUR DIFFICULTY");
   mvwaddstr(window, text_y + 1, text_x, "======================");

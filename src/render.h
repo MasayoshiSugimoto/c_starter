@@ -2,29 +2,18 @@
 #define RENDER_H
 
 
+#include "window_manager.h"
+
+
 void render_game_over_init() {
-  struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_OVER];
-  game_window->width = 13;
-  game_window->height = 3;
-}
-
-
-void render_game_over(struct GameBoard* game_board) {
-  struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_OVER];
-  mvwaddstr(game_window->window, 1, 1, " GAME OVER ");
+  window_manager_set_width(WINDOW_ID_GAME_OVER, 13);
+  window_manager_set_height(WINDOW_ID_GAME_OVER, 3);
 }
 
 
 void render_game_won_init() {
-  struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
-  game_window->width = 11;
-  game_window->height = 3;
-}
-
-
-void render_game_won(struct GameBoard* game_board) {
-  struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_WON];
-  mvwaddstr(game_window->window, 1, 1, " YOU WON ");
+  window_manager_set_width(WINDOW_ID_GAME_WON, 11);
+  window_manager_set_height(WINDOW_ID_GAME_WON, 3);
 }
 
 
@@ -42,14 +31,13 @@ void render_in_game(
   struct Cursor* cursor = &game->cursor;
   int game_board_left = center.x - (game_board->width + 2) / 2;
   int game_board_top = center.y - (game_board->height + 2) / 2;
-  const int cursor_x_offset = 1;
-  const int cursor_y_offset = 1;
 
   game_board_render(game_board, game_board_left, game_board_top);
 
+  const int border = 1;
   move(
-      cursor->y + cursor_y_offset + game_board_top,
-      cursor->x + cursor_x_offset + game_board_left
+      cursor->y + border + game_board_top,
+      cursor->x + border + game_board_left
   );
 }
 
@@ -57,28 +45,31 @@ void render_in_game(
 void render(struct Game* game, struct Vector center, struct Menu* menu) {
   enum GameState game_state = game->game_state;
   erase();
-  game_window_erase();
+  window_manager_erase();
   render_help_menu();
 
   if (game_menu_is_enabled()) {
     log_info("Game menu is enabled.");
-    game_window_enable_only(GAME_WINDOW_ID_GAME_MENU);
     game_menu_render(center.x, center.y);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
   } else {
+    WINDOW* window = NULL;
     switch (game_state) {
       case GAME_STATE_IN_GAME:
         render_in_game(game, game_state, center);
-        game_window_disable_all();
         curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
         break;
       case GAME_STATE_GAME_OVER:
         render_in_game(game, game_state, center);
 
-        main_setup_window(GAME_WINDOW_ID_GAME_OVER, center);
-        render_game_over(&game->game_board);
+        window = window_manager_setup_window(
+            WINDOW_ID_GAME_OVER,
+            center.x,
+            center.y
+        );
+        mvwaddstr(window, 1, 1, " GAME OVER ");
 
         curs_set(CURSOR_VISIBILITY_INVISIBLE);
         move(0, 0);
@@ -86,15 +77,23 @@ void render(struct Game* game, struct Vector center, struct Menu* menu) {
       case GAME_STATE_GAME_WON:
         render_in_game(game, game_state, center);
 
-        main_setup_window(GAME_WINDOW_ID_GAME_WON, center);
-        render_game_won(&game->game_board);
+        window = window_manager_setup_window(
+            WINDOW_ID_GAME_WON,
+            center.x,
+            center.y
+        );
+        mvwaddstr(window, 1, 1, " YOU WON ");
 
         curs_set(CURSOR_VISIBILITY_INVISIBLE);
         move(0, 0);
         break;
       case GAME_STATE_MENU:
-        main_setup_window(GAME_WINDOW_ID_MENU, center);
-        menu_render(menu);
+        window = window_manager_setup_window(
+            WINDOW_ID_MENU,
+            center.x,
+            center.y
+        );
+        menu_render(menu, window);
 
         curs_set(CURSOR_VISIBILITY_INVISIBLE);
         move(0, 0);
@@ -104,7 +103,7 @@ void render(struct Game* game, struct Vector center, struct Menu* menu) {
     }
   }
   refresh();
-  game_window_render();
+  window_manager_render();
 }
 
 

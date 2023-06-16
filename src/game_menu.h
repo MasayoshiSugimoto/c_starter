@@ -3,6 +3,7 @@
 
 
 #include "util.h"
+#include "window_manager.h"
 
 
 #define GAME_MENU_WIDTH 31
@@ -32,31 +33,20 @@ const char* g_menu_items[] = {
 };
 
 
-struct GameWindow* game_menu_get_window() {
-  return &g_game_windows[GAME_WINDOW_ID_GAME_MENU];
-}
-
-
 void game_menu_init() {
   g_game_menu.selected = 0;
   g_game_menu.enabled = true;
-  struct GameWindow* game_window = game_menu_get_window();
-  game_window->width = GAME_MENU_WIDTH;
-  game_window->height = GAME_MENU_HEIGHT;
+  window_manager_set_width(WINDOW_ID_GAME_MENU, GAME_MENU_WIDTH); 
+  window_manager_set_height(WINDOW_ID_GAME_MENU, GAME_MENU_HEIGHT);
 }
 
 
 void game_menu_render(int center_x, int center_y) {
-  struct GameWindow* game_window = &g_game_windows[GAME_WINDOW_ID_GAME_MENU];
-  int left = center_x - game_window->width / 2;
-  int top = center_y - game_window->height / 2;
-  WINDOW* window = game_window->window;
-  mvwin(window, top, left);
-  wresize(window, game_window->height, game_window->width);
-  box(window, 0, 0);
+  enum WindowId id = WINDOW_ID_GAME_MENU;
+  WINDOW* window = window_manager_setup_window(id, center_x, center_y);
 
   char* title = "MENU";
-  int text_x = (game_window->width - strlen(title)) / 2;
+  int text_x = (window_manager_get_width(id) - strlen(title)) / 2;
   int text_y = 2;
   mvwaddstr(window, text_y, text_x, title);
   mvwaddstr(window, text_y + 1, text_x, "====");

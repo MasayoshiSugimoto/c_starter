@@ -3,6 +3,9 @@
 
 
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
 
 #define DEBUG_FILE "/tmp/minesweeper.log"
@@ -59,12 +62,7 @@ struct _IO_FILE* g_debug_file;
 }
 
 
-void log_init() {
-  g_debug_file = fopen(DEBUG_FILE, "w+");
-  if (g_debug_file == NULL) {
-    log_fatal_f("fopen(\"%s\") failed (%d): %s\n", DEBUG_FILE, errno, strerror(errno));
-  }
-}
+void log_init();
 
 
 #endif
