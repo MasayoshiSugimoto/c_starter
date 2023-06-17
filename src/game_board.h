@@ -55,57 +55,6 @@ int game_board_get_index(struct GameBoard* game_board, int x, int y) {
 }
 
 
-void game_board_render(struct GameBoard* game_board, int left, int top) {
-  int width = game_board->width;
-  int height = game_board->height;
-  char* board = game_board->board;
-  bool* visibility_map = game_board->visibility_map;
-  char* markers = game_board->markers;
-
-  int line = top;
-  move(line, left);
-  addch(ACS_ULCORNER);
-  for (int x = 0; x < width; x++) {
-    addch(ACS_HLINE);
-  }
-  addch(ACS_URCORNER);
-
-  line++;
-
-  for (int y = 0; y < height; y++) {
-    move(line, left);
-    addch(ACS_VLINE);
-    for (int x = 0; x < width; x++) {
-      int i = game_board_get_index(game_board, x, y);
-      if (visibility_map[i]) {
-        if (board[i] == BOARD_CELL_TYPE_MINE) {
-          addch(BOARD_CELL_TYPE_MINE);
-        } else if (board[i] == BOARD_CELL_TYPE_EMPTY) {
-          addch(BOARD_CELL_TYPE_EMPTY);
-        } else {
-          addch((char)'0' + board[i]);
-        }
-      } else if (markers[i] == BOARD_CELL_TYPE_OK_MARKER) {
-        addch(BOARD_CELL_TYPE_OK_MARKER);
-      } else if (markers[i] == BOARD_CELL_TYPE_MINE_MARKER) {
-        addch(BOARD_CELL_TYPE_MINE_MARKER);
-      } else {
-        addch(BOARD_CELL_TYPE_HIDDEN);
-      }
-    }
-    addch(ACS_VLINE);
-    line++;
-  }
-
-  move(line, left);
-  addch(ACS_LLCORNER);
-  for (int x = 0; x < width; x++) {
-    addch(ACS_HLINE);
-  }
-  addch(ACS_LRCORNER);
-}
-
-
 void game_board_set_mine(struct GameBoard* game_board, int x, int y) {
   game_board->board[game_board_get_index(game_board, x, y)] = BOARD_CELL_TYPE_MINE;
 }

@@ -36,31 +36,6 @@ const char* g_menu_items[] = {
 void game_menu_init() {
   g_game_menu.selected = 0;
   g_game_menu.enabled = true;
-  window_manager_set_width(WINDOW_ID_GAME_MENU, GAME_MENU_WIDTH); 
-  window_manager_set_height(WINDOW_ID_GAME_MENU, GAME_MENU_HEIGHT);
-}
-
-
-void game_menu_render(int center_x, int center_y) {
-  enum WindowId id = WINDOW_ID_GAME_MENU;
-  WINDOW* window = window_manager_setup_window(id, center_x, center_y);
-
-  char* title = "MENU";
-  int text_x = (window_manager_get_width(id) - strlen(title)) / 2;
-  int text_y = 2;
-  mvwaddstr(window, text_y, text_x, title);
-  mvwaddstr(window, text_y + 1, text_x, "====");
-
-  text_x = 12;
-  text_y += 3;
-  int space_y = 2;
-  mvwaddstr(window, text_y, text_x, "Resume");
-  mvwaddstr(window, text_y + space_y, text_x, "New Game");
-  mvwaddstr(window, text_y + space_y * 2, text_x, "Manual");
-  mvwaddstr(window, text_y + space_y * 3, text_x, "Quit");
-
-  // Render cursor.
-  mvwaddch(window, text_y + (g_game_menu.selected * space_y), 9, '>');
 }
 
 

@@ -68,12 +68,10 @@ int main() {
 
   struct Terminal terminal;
 
-  window_manager_init();
-  render_game_won_init();
+  render_init();
 
   struct Menu menu;
   menu_init(&menu);
-  render_game_over_init();
   game_menu_init();
 
 #if DEBUG_ENABLE_TEST

@@ -48,24 +48,6 @@ void menu_init(struct Menu* menu) {
 }
 
 
-void menu_render(struct Menu* menu, WINDOW* window) {
-  int text_x = window_manager_get_width(WINDOW_ID_MENU) / 2 - 11;
-  int text_y = 3;
-  mvwaddstr(window, text_y, text_x, "CHOOSE YOUR DIFFICULTY");
-  mvwaddstr(window, text_y + 1, text_x, "======================");
-
-  int start_x = 10;
-  int start_y = 6;
-  mvwaddstr(window, start_y + 0, start_x + 2, "Easy");
-  mvwaddstr(window, start_y + 2, start_x + 2, "Medium");
-  mvwaddstr(window, start_y + 4, start_x + 2, "Hard");
-
-  // Render cursor.
-  mvwaddch(window, start_y + (menu->menu_selection * 2), start_x, '>');
-}
-
-
-
 void menu_move_cursor_up(struct Menu* menu) {
   log_info("Up key pressed.");
   if (menu->menu_selection == 0) {
