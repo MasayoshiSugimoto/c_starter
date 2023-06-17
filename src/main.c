@@ -107,7 +107,7 @@ int main() {
       break;
     }
 
-    log_info_f("Game state: %s", g_game_state_strings[game.game_state]);
+    game_print_state(game.game_state);
   }
 
   endwin();  // End ncurses.

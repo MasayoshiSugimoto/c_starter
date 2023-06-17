@@ -18,9 +18,7 @@ struct Cursor {
 };
 
 
-void cursor_dump(struct Cursor* cursor) {
-  log_info_f("cursor: x=%d, y=%d", cursor->x, cursor->y);
-}
+void cursor_dump(struct Cursor* cursor);
 
 
 #endif

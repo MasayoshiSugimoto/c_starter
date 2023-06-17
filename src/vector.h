@@ -11,9 +11,7 @@ struct Vector {
 };
 
 
-void vector_as_string(char* buf, struct Vector v) {
-  sprintf(buf, "{x:%d, y:%d}", v.x, v.y); 
-}
+void vector_as_string(char* buf, struct Vector v);
 
 
 #endif
