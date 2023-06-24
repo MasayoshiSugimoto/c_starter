@@ -20,7 +20,7 @@ struct Game {
   struct GameBoard game_board;
   struct Cursor cursor; 
   enum GameState game_state;
-} g_game;
+};
 
 
 void game_init_easy_mode(struct Game* game);

@@ -9,8 +9,7 @@
 #include "ui.h"
 
 
-void render_init(struct WindowManager* window_manager);
-void render(struct Vector center, struct UI* ui);
+void render(struct Vector center, struct UI* ui, struct Game* game);
 
 
 #endif

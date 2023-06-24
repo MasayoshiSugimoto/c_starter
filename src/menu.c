@@ -1,10 +1,6 @@
 #include "menu.h"
 
 
-#define MENU_WIDTH 30
-#define MENU_HEIGHT 14
-
-
 const char* MENU_SELECTION_NAMES[] = {
   "easy",
   "medium",
@@ -23,8 +19,6 @@ const char* menu_selection_as_string(enum MenuSelection selection) {
 
 void menu_init(struct Menu* menu, struct WindowManager* window_manager) {
   menu->menu_selection = MENU_SELECTION_MEDIUM;
-  window_manager_set_width(window_manager, WINDOW_ID_MENU, MENU_WIDTH);
-  window_manager_set_height(window_manager, WINDOW_ID_MENU, MENU_HEIGHT);
 }
 
 

@@ -1,36 +1,6 @@
 #include "render.h"
 
 
-#define GAME_MENU_WIDTH 31
-#define GAME_MENU_HEIGHT 15
-
-
-void render_game_over_init(struct WindowManager* window_manager) {
-  window_manager_set_width(window_manager, WINDOW_ID_GAME_OVER, 13);
-  window_manager_set_height(window_manager, WINDOW_ID_GAME_OVER, 3);
-}
-
-
-void render_game_won_init(struct WindowManager* window_manager) {
-  window_manager_set_width(window_manager, WINDOW_ID_GAME_WON, 11);
-  window_manager_set_height(window_manager, WINDOW_ID_GAME_WON, 3);
-}
-
-
-void render_game_menu_init(struct WindowManager* window_manager) {
-  window_manager_set_width(window_manager, WINDOW_ID_GAME_MENU, GAME_MENU_WIDTH); 
-  window_manager_set_height(window_manager, WINDOW_ID_GAME_MENU, GAME_MENU_HEIGHT);
-}
-
-
-void render_init(struct WindowManager* window_manager) {
-  window_manager_init(window_manager);
-  render_game_over_init(window_manager);
-  render_game_won_init(window_manager);
-  render_game_menu_init(window_manager);
-}
-
-
 void render_help_menu() {
   mvaddstr(0, 0, "Press `Esc` to display the menu.");
 }
@@ -87,9 +57,9 @@ void render_game_board(struct GameBoard* game_board, int left, int top) {
 }
 
 
-void render_in_game(enum GameState game_state, struct Vector center) {
-  struct GameBoard* game_board = &g_game.game_board;
-  struct Cursor* cursor = &g_game.cursor;
+void render_in_game(struct Game* game, struct Vector center) {
+  struct GameBoard* game_board = &game->game_board;
+  struct Cursor* cursor = &game->cursor;
   int game_board_left = center.x - (game_board->width + 2) / 2;
   int game_board_top = center.y - (game_board->height + 2) / 2;
 
@@ -104,6 +74,7 @@ void render_in_game(enum GameState game_state, struct Vector center) {
 
 
 void render_game_menu(
+    struct GameMenu* game_menu,
     struct WindowManager* window_manager,
     int center_x,
     int center_y
@@ -131,15 +102,23 @@ void render_game_menu(
   mvwaddstr(window, text_y + space_y * 3, text_x, "Quit");
 
   // Render cursor.
-  mvwaddch(window, text_y + (g_game_menu.selected * space_y), 9, '>');
+  mvwaddch(window, text_y + (game_menu->selected * space_y), 9, '>');
 }
 
 
 void render_menu(
     struct Menu* menu,
     struct WindowManager* window_manager,
-    WINDOW* window
+    struct Vector center
 ) {
+  WINDOW* window = window_manager_setup_window(
+      window_manager,
+      WINDOW_ID_MENU,
+      center.x,
+      center.y
+  );
+
+
   int text_x = window_manager_get_width(window_manager, WINDOW_ID_MENU) / 2 - 11;
   int text_y = 3;
   mvwaddstr(window, text_y, text_x, "CHOOSE YOUR DIFFICULTY");
@@ -156,8 +135,8 @@ void render_menu(
 }
 
 
-void render(struct Vector center, struct UI* ui) {
-  enum GameState game_state = g_game.game_state;
+void render(struct Vector center, struct UI* ui, struct Game* game) {
+  enum GameState game_state = game->game_state;
   struct WindowManager* window_manager = &ui->window_manager;
   WINDOW* window = NULL;
 
@@ -167,15 +146,15 @@ void render(struct Vector center, struct UI* ui) {
 
   if (game_menu_is_enabled(&ui->game_menu)) {
     log_info("Game menu is enabled.");
-    render_game_menu(window_manager, center.x, center.y);
+    render_game_menu(&ui->game_menu, window_manager, center.x, center.y);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
   } else if (game_state == GAME_STATE_IN_GAME) {
-    render_in_game(game_state, center);
+    render_in_game(game, center);
     curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
   } else if (game_state == GAME_STATE_GAME_OVER) {
-    render_in_game(game_state, center);
+    render_in_game(game, center);
 
     window = window_manager_setup_window(
         window_manager,
@@ -188,7 +167,7 @@ void render(struct Vector center, struct UI* ui) {
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
   } else if (game_state == GAME_STATE_GAME_WON) {
-    render_in_game(game_state, center);
+    render_in_game(game, center);
 
     window = window_manager_setup_window(
         window_manager,
@@ -201,13 +180,7 @@ void render(struct Vector center, struct UI* ui) {
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
   } else if (game_state == GAME_STATE_MENU) {
-    window = window_manager_setup_window(
-        window_manager,
-        WINDOW_ID_MENU,
-        center.x,
-        center.y
-        );
-    render_menu(&ui->menu, window_manager, window);
+    render_menu(&ui->menu, window_manager, center);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);

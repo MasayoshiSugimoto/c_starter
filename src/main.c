@@ -29,26 +29,19 @@ void debug_init() {
 
 
 struct UI ui;
+struct Game game;
 
 
 int main() {
   log_init();
 
-  // Initialize ncurses
-  initscr();
-  noecho();
-  cbreak();
-  keypad(stdscr, TRUE);
-
   srand(time(NULL));
 
-  game_init_medium_mode(&g_game);
+  game_init_medium_mode(&game);
 
-  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&g_game.game_board);
+  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game.game_board);
 
   ui_init(&ui);
-
-  render_init(&ui.window_manager);
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -73,14 +66,19 @@ int main() {
       continue;
     }
 
-    render(center, &ui);
+  int width = window_manager_get_width(&ui.window_manager, WINDOW_ID_MENU);
+  int height = window_manager_get_height(&ui.window_manager, WINDOW_ID_MENU);
+  log_info_f("menu_size={width:%d, height:%d}", width, height);
 
-    enum GameState game_state = input_update(&g_game, &ui);
+
+    render(center, &ui, &game);
+
+    enum GameState game_state = input_update(&game, &ui);
     if (game_state < GAME_STATE_MAX) {
-      g_game.game_state = game_state;
+      game.game_state = game_state;
     }
 
-    game_print_state(g_game.game_state);
+    game_print_state(game.game_state);
     if (game_state == GAME_STATE_QUIT) {
       break;
     }

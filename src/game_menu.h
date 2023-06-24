@@ -11,7 +11,7 @@
 struct GameMenu {
   int selected;
   bool enabled;
-} g_game_menu;
+};
 
 
 void game_menu_init(struct GameMenu* game_menu);
