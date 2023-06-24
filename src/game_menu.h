@@ -14,12 +14,12 @@ struct GameMenu {
 } g_game_menu;
 
 
-void game_menu_init();
-void game_menu_move_cursor_up();
-void game_menu_move_cursor_down();
-bool game_menu_is_enabled();
-void game_menu_enable();
-enum GameState game_menu_validate();
+void game_menu_init(struct GameMenu* game_menu);
+void game_menu_move_cursor_up(struct GameMenu* game_menu);
+void game_menu_move_cursor_down(struct GameMenu* game_menu);
+bool game_menu_is_enabled(struct GameMenu* game_menu);
+void game_menu_enable(struct GameMenu* game_menu);
+enum GameState game_menu_validate(struct GameMenu* game_menu);
 
 
 #endif

@@ -6,10 +6,11 @@
 #include "menu.h"
 #include "vector.h"
 #include "game_menu.h"
+#include "ui.h"
 
 
-void render_init();
-void render(struct Game* game, struct Vector center, struct Menu* menu);
+void render_init(struct WindowManager* window_manager);
+void render(struct Vector center, struct UI* ui);
 
 
 #endif

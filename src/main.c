@@ -1,28 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdarg.h>
 #include <time.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <curses.h>
-#include <ncurses.h>
-#include <term.h>
-#include <unistd.h>
-#include "menu.h"
-#include "log.h"
-#include "cursor.h"
-#include "vector.h"
-#include "game_board.h"
-#include "util.h"
-#include "terminal.h"
-#include "game.h"
 #include "input.h"
-#include "game_menu.h"
 #include "render.h"
-#include "window_manager.h"
+#include "ui.h"
+
 
 /********************************************************************************
 * Main
@@ -48,6 +28,9 @@ void debug_init() {
 #endif
 
 
+struct UI ui;
+
+
 int main() {
   log_init();
 
@@ -59,20 +42,13 @@ int main() {
 
   srand(time(NULL));
 
-  struct Game game;
-  struct GameBoard* game_board = &game.game_board;
+  game_init_medium_mode(&g_game);
 
-  game_init_medium_mode(&game);
+  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&g_game.game_board);
 
-  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(game_board);
+  ui_init(&ui);
 
-  struct Terminal terminal;
-
-  render_init();
-
-  struct Menu menu;
-  menu_init(&menu);
-  game_menu_init();
+  render_init(&ui.window_manager);
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -80,11 +56,12 @@ int main() {
 
   // Loop to track cursor position
   while (true) {
-    terminal_init(&terminal);
-    log_info_f("terminal={width:%d, height:%d}", terminal.width, terminal.height);
-    struct Vector center = terminal_center(&terminal);
+    struct Terminal* terminal = &ui.terminal;
+    terminal_init(terminal);
+    log_info_f("terminal={width:%d, height:%d}", terminal->width, terminal->height);
+    struct Vector center = terminal_center(terminal);
 
-    if (terminal.height < TERMINAL_MIN_HEIGHT) {
+    if (terminal->height < TERMINAL_MIN_HEIGHT) {
       log_info("Terminal height is less than the minimum allowed.");
       erase();
       addstr(
@@ -96,18 +73,17 @@ int main() {
       continue;
     }
 
-    render(&game, center, &menu);
+    render(center, &ui);
 
-    enum GameState game_state = input_update(&game, &menu);
+    enum GameState game_state = input_update(&g_game, &ui);
     if (game_state < GAME_STATE_MAX) {
-      game.game_state = game_state;
+      g_game.game_state = game_state;
     }
 
+    game_print_state(g_game.game_state);
     if (game_state == GAME_STATE_QUIT) {
       break;
     }
-
-    game_print_state(game.game_state);
   }
 
   endwin();  // End ncurses.

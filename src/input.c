@@ -1,13 +1,6 @@
 #include "input.h"
 
 
-enum InputCommand {
-  INPUT_COMMAND_DO_NOTHING,
-  INPUT_COMMAND_QUIT,
-  INPUT_COMMAND_MAX
-};
-
-
 bool input_update_in_game(struct Game* game, int input) {
   struct GameBoard* game_board = &game->game_board;
   struct Cursor* cursor = &game->cursor;
@@ -64,34 +57,38 @@ bool input_menu_update(struct Menu* menu, int input, struct Game* game) {
 }
 
 
-enum GameState input_game_menu_update(int input, enum GameState game_state) {
+enum GameState input_game_menu_update(
+    int input,
+    enum GameState game_state,
+    struct GameMenu* game_menu
+) {
   switch (input) {
     case KEY_DOWN:
       log_info("Down key pressed.");
-      game_menu_move_cursor_down();
+      game_menu_move_cursor_down(game_menu);
       return GAME_STATE_MAX;
     case KEY_UP:
       log_info("Up key pressed.");
-      game_menu_move_cursor_up();
+      game_menu_move_cursor_up(game_menu);
       return GAME_STATE_MAX;
     case KEY_RESIZE:
       log_info("Window resized.");
       return GAME_STATE_MAX;
     default:
       log_info_f("Key pressed: %d", input);
-      return game_menu_validate();
+      return game_menu_validate(game_menu);
   }
 }
 
 
-enum GameState input_update(struct Game* game, struct Menu* menu) {
+enum GameState input_update(struct Game* game, struct UI* ui) {
   int input = getch();
   enum GameState game_state = game->game_state;
   struct GameBoard* game_board = &game->game_board;
 
-  if (game_menu_is_enabled()) {
+  if (game_menu_is_enabled(&ui->game_menu)) {
     log_info("Game menu is enabled.");
-    return input_game_menu_update(input, game_state);
+    return input_game_menu_update(input, game_state, &ui->game_menu);
   } else if (game_state == GAME_STATE_IN_GAME) {
     input_update_in_game(game, input);
     if (game_board_is_lost(game_board)) {
@@ -100,11 +97,11 @@ enum GameState input_update(struct Game* game, struct Menu* menu) {
       return GAME_STATE_GAME_WON;
     }
   } else if (game_state == GAME_STATE_GAME_OVER) {
-    game_menu_enable();
+    game_menu_enable(&ui->game_menu);
   } else if (game_state == GAME_STATE_GAME_WON) {
-    game_menu_enable();
+    game_menu_enable(&ui->game_menu);
   } else if (game_state == GAME_STATE_MENU) {
-    if (input_menu_update(menu, input, game)) return GAME_STATE_IN_GAME;
+    if (input_menu_update(&ui->menu, input, game)) return GAME_STATE_IN_GAME;
   } else {
     log_fatal_f("Invalid game_state=%d", game_state);
   }

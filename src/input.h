@@ -3,10 +3,10 @@
 
 
 #include "game_menu.h"
-#include "menu.h"
+#include "ui.h"
 
 
-enum GameState input_update(struct Game* game, struct Menu* menu);
+enum GameState input_update(struct Game* game, struct UI* ui);
 
 
 #endif

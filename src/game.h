@@ -20,10 +20,9 @@ struct Game {
   struct GameBoard game_board;
   struct Cursor cursor; 
   enum GameState game_state;
-};
+} g_game;
 
 
-void game_init(struct Game* game, int width, int height);
 void game_init_easy_mode(struct Game* game);
 void game_init_medium_mode(struct Game* game);
 void game_init_hard_mode(struct Game* game);

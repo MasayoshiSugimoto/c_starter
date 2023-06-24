@@ -21,10 +21,10 @@ const char* menu_selection_as_string(enum MenuSelection selection) {
 }
 
 
-void menu_init(struct Menu* menu) {
+void menu_init(struct Menu* menu, struct WindowManager* window_manager) {
   menu->menu_selection = MENU_SELECTION_MEDIUM;
-  window_manager_set_width(WINDOW_ID_MENU, MENU_WIDTH);
-  window_manager_set_height(WINDOW_ID_MENU, MENU_HEIGHT);
+  window_manager_set_width(window_manager, WINDOW_ID_MENU, MENU_WIDTH);
+  window_manager_set_height(window_manager, WINDOW_ID_MENU, MENU_HEIGHT);
 }
 
 

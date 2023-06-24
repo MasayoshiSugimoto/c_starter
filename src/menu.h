@@ -21,7 +21,7 @@ struct Menu {
 };
 
 
-void menu_init(struct Menu* menu);
+void menu_init(struct Menu* menu, struct WindowManager* window_manager);
 void menu_move_cursor_up(struct Menu* menu);
 void menu_move_cursor_down(struct Menu* menu);
 bool menu_validate(struct Menu* menu, struct Game* game);
