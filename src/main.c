@@ -21,8 +21,6 @@
 void debug_init() {
   log_info("DEBUG MODE ON");
   log_info("=============\n");
-
-
 }
 
 #endif
@@ -34,14 +32,11 @@ struct Game game;
 
 int main() {
   log_init();
-
   srand(time(NULL));
-
   game_init_medium_mode(&game);
+  ui_init(&ui);
 
   if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game.game_board);
-
-  ui_init(&ui);
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -65,11 +60,6 @@ int main() {
       getch();  // Wait for resize.
       continue;
     }
-
-  int width = window_manager_get_width(&ui.window_manager, WINDOW_ID_MENU);
-  int height = window_manager_get_height(&ui.window_manager, WINDOW_ID_MENU);
-  log_info_f("menu_size={width:%d, height:%d}", width, height);
-
 
     render(center, &ui, &game);
 
