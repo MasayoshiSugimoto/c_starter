@@ -2,18 +2,12 @@
 #include "input.h"
 #include "render.h"
 #include "ui.h"
+#include "consts.h"
 
 
 /********************************************************************************
 * Main
 ********************************************************************************/
-
-#define DEFAULT_TEXT_BUF 512
-
-#define DEBUG_GAME_BOARD_SHOW_ALL false
-#define DEBUG_ENABLE_TEST false
-
-#define TERMINAL_MIN_HEIGHT 20
 
 
 #if DEBUG_ENABLE_TEST
@@ -36,7 +30,6 @@ int main() {
   game_init_medium_mode(&game);
   ui_init(&ui);
 
-  if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game.game_board);
 
 #if DEBUG_ENABLE_TEST
   debug_init();
@@ -44,6 +37,8 @@ int main() {
 
   // Loop to track cursor position
   while (true) {
+    if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game.game_board);
+
     struct Terminal* terminal = &ui.terminal;
     terminal_init(terminal);
     log_info_f("terminal={width:%d, height:%d}", terminal->width, terminal->height);
