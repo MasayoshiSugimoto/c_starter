@@ -135,10 +135,37 @@ void render_menu(
 }
 
 
+void render_game_won(
+    struct WindowManager* window_manager,
+    struct Vector center
+) {
+  WINDOW* window = window_manager_setup_window(
+      window_manager,
+      WINDOW_ID_GAME_WON,
+      center.x,
+      center.y
+  );
+  mvwaddstr(window, 1, 1, " YOU WON ");
+}
+
+
+void render_game_over(
+    struct WindowManager* window_manager,
+    struct Vector center
+) {
+  WINDOW* window = window_manager_setup_window(
+      window_manager,
+      WINDOW_ID_GAME_OVER,
+      center.x,
+      center.y
+  );
+  mvwaddstr(window, 1, 1, " GAME OVER ");
+}
+
+
 void render(struct Vector center, struct UI* ui, struct Game* game) {
   enum GameState game_state = game->game_state;
   struct WindowManager* window_manager = &ui->window_manager;
-  WINDOW* window = NULL;
 
   erase();
   window_manager_erase(window_manager);
@@ -155,27 +182,13 @@ void render(struct Vector center, struct UI* ui, struct Game* game) {
     curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
   } else if (game_state == GAME_STATE_GAME_OVER) {
     render_in_game(game, center);
-
-    window = window_manager_setup_window(
-        window_manager,
-        WINDOW_ID_GAME_OVER,
-        center.x,
-        center.y
-        );
-    mvwaddstr(window, 1, 1, " GAME OVER ");
+    render_game_over(window_manager, center);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
   } else if (game_state == GAME_STATE_GAME_WON) {
     render_in_game(game, center);
-
-    window = window_manager_setup_window(
-        window_manager,
-        WINDOW_ID_GAME_WON,
-        center.x,
-        center.y
-        );
-    mvwaddstr(window, 1, 1, " YOU WON ");
+    render_game_won(window_manager, center);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);
