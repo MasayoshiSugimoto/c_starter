@@ -45,24 +45,3 @@ void menu_move_cursor_down(struct Menu* menu) {
   );
 }
 
-
-bool menu_validate(struct Menu* menu, struct Game* game) {
-  bool is_new_game = false;
-  switch (menu->menu_selection) {
-    case MENU_SELECTION_EASY:
-      game_init_easy_mode(game);
-      is_new_game = true;
-      break;
-    case MENU_SELECTION_MEDIUM:
-      game_init_medium_mode(game);
-      is_new_game = true;
-      break;
-    case MENU_SELECTION_HARD:
-      game_init_hard_mode(game);
-      is_new_game = true;
-      break;
-    default:
-      log_fatal_f("Invalid menu selection: %d", menu->menu_selection);
-  }
-  return is_new_game;
-}

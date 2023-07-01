@@ -34,8 +34,7 @@ void input_update_in_game(struct Game* game, int input) {
 }
 
 
-bool input_menu_update(struct Menu* menu, int input, struct Game* game) {
-  bool is_new_game = false;
+void input_menu_update(struct Menu* menu, int input, struct Game* game) {
   switch (input) {
     case KEY_DOWN:
       menu_move_cursor_down(menu);
@@ -46,9 +45,23 @@ bool input_menu_update(struct Menu* menu, int input, struct Game* game) {
     case KEY_RESIZE:
       break;
     default:
-      return menu_validate(menu, game);
+      switch (menu->menu_selection) {
+        case MENU_SELECTION_EASY:
+          game_init_easy_mode(game);
+          game_set_game_state(game, GAME_STATE_IN_GAME);
+          break;
+        case MENU_SELECTION_MEDIUM:
+          game_init_medium_mode(game);
+          game_set_game_state(game, GAME_STATE_IN_GAME);
+          break;
+        case MENU_SELECTION_HARD:
+          game_init_hard_mode(game);
+          game_set_game_state(game, GAME_STATE_IN_GAME);
+          break;
+        default:
+          log_fatal_f("Invalid menu selection: %d", menu->menu_selection);
+      }
   }
-  return is_new_game;
 }
 
 
@@ -140,9 +153,7 @@ void input_update(struct Game* game, struct UI* ui) {
   } else if (game_state == GAME_STATE_GAME_WON) {
     game_menu_enable(&ui->game_menu);
   } else if (game_state == GAME_STATE_MENU) {
-    if (input_menu_update(&ui->menu, input, game)) {
-      game_set_game_state(game, GAME_STATE_IN_GAME);
-    }
+    input_menu_update(&ui->menu, input, game);
   } else {
     log_fatal_f("Invalid game_state=%d", game_state);
   }
