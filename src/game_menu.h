@@ -8,8 +8,17 @@
 #include "game.h"
 
 
+enum GameMenuCommand {
+  GAME_MENU_RESUME,
+  GAME_MENU_NEW_GAME,
+  GAME_MENU_MANUAL,
+  GAME_MENU_QUIT,
+  GAME_MENU_COMMAND_MAX
+};
+
+
 struct GameMenu {
-  int selected;
+  enum GameMenuCommand selected;
   bool enabled;
 };
 
@@ -19,7 +28,6 @@ void game_menu_move_cursor_up(struct GameMenu* game_menu);
 void game_menu_move_cursor_down(struct GameMenu* game_menu);
 bool game_menu_is_enabled(struct GameMenu* game_menu);
 void game_menu_enable(struct GameMenu* game_menu);
-enum GameState game_menu_validate(struct GameMenu* game_menu);
 
 
 #endif

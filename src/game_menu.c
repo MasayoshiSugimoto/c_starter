@@ -1,15 +1,6 @@
 #include "game_menu.h"
 
 
-enum GameMenuCommand {
-  GAME_MENU_RESUME,
-  GAME_MENU_NEW_GAME,
-  GAME_MENU_MANUAL,
-  GAME_MENU_QUIT,
-  GAME_MENU_COMMAND_MAX
-};
-
-
 const char* g_menu_items[] = {
   "Resume",
   "New Game",
@@ -56,26 +47,3 @@ void game_menu_enable(struct GameMenu* game_menu) {
   game_menu->enabled = true;
 }
 
-
-enum GameState game_menu_validate(struct GameMenu* game_menu) {
-  switch (game_menu->selected) {
-    case GAME_MENU_RESUME:
-      log_info("Resuming game.");
-      game_menu->enabled = false;
-      return GAME_STATE_MAX;
-    case GAME_MENU_NEW_GAME:
-      log_info("Starting new game.");
-      game_menu->enabled = false;
-      return GAME_STATE_MENU;
-    case GAME_MENU_MANUAL:
-      log_info("Opening manual.");
-      game_menu->enabled = false;
-      return GAME_STATE_MAX;
-    case GAME_MENU_QUIT:
-      log_info("Quiting...");
-      return GAME_STATE_QUIT;
-    default:
-      log_fatal_f("Invalid menu selection: %d", game_menu->selected);
-  }
-  return GAME_STATE_MAX;
-}

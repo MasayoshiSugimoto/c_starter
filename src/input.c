@@ -67,7 +67,27 @@ void input_game_menu_update(
     case KEY_RESIZE:
       break;
     default:
-      game_set_game_state(game, game_menu_validate(game_menu));
+      switch (game_menu->selected) {
+        case GAME_MENU_RESUME:
+          log_info("Resuming game.");
+          game_menu->enabled = false;
+          break;
+        case GAME_MENU_NEW_GAME:
+          log_info("Starting new game.");
+          game_menu->enabled = false;
+          game_set_game_state(game, GAME_STATE_MENU);
+          break;
+        case GAME_MENU_MANUAL:
+          log_info("Opening manual.");
+          game_menu->enabled = false;
+          break;
+        case GAME_MENU_QUIT:
+          log_info("Quiting...");
+          game_set_game_state(game, GAME_STATE_QUIT);
+          break;
+        default:
+          log_fatal_f("Invalid menu selection: %d", game_menu->selected);
+      }
   }
 }
 
