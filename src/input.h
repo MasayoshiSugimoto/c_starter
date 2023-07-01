@@ -6,7 +6,7 @@
 #include "ui.h"
 
 
-enum GameState input_update(struct Game* game, struct UI* ui);
+void input_update(struct Game* game, struct UI* ui);
 
 
 #endif

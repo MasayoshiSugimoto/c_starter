@@ -27,6 +27,7 @@ void game_init_easy_mode(struct Game* game);
 void game_init_medium_mode(struct Game* game);
 void game_init_hard_mode(struct Game* game);
 void game_print_state(enum GameState game_state);
+void game_set_game_state(struct Game* game, enum GameState game_state);
 
 
 #endif

@@ -48,3 +48,10 @@ void game_init_hard_mode(struct Game* game) {
 void game_print_state(enum GameState game_state) {
   log_info_f("Game state: %s", g_game_state_strings[game_state]);
 }
+
+
+void game_set_game_state(struct Game* game, enum GameState game_state) {
+  log_info_f("Game state set to: %s", g_game_state_strings[game_state]);
+  if (game_state == GAME_STATE_MAX) return;
+  game->game_state = game_state;
+}

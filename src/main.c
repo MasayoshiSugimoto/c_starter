@@ -37,6 +37,7 @@ int main() {
 
   // Loop to track cursor position
   while (true) {
+    log_info("LOOP BEGIN");
     if (DEBUG_GAME_BOARD_SHOW_ALL) game_board_show_all(&game.game_board);
 
     struct Terminal* terminal = &ui.terminal;
@@ -58,13 +59,9 @@ int main() {
 
     render(center, &ui, &game);
 
-    enum GameState game_state = input_update(&game, &ui);
-    if (game_state < GAME_STATE_MAX) {
-      game.game_state = game_state;
-    }
-
+    input_update(&game, &ui);
     game_print_state(game.game_state);
-    if (game_state == GAME_STATE_QUIT) {
+    if (game.game_state == GAME_STATE_QUIT) {
       break;
     }
   }
