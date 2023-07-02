@@ -6,6 +6,7 @@
 #include "game_menu.h"
 #include "window_manager.h"
 #include "terminal.h"
+#include "manual.h"
 
 
 /**
@@ -16,6 +17,7 @@ struct UI {
   struct GameMenu game_menu;
   struct WindowManager window_manager;
   struct Terminal terminal;
+  struct Manual manual;
 };
 
 

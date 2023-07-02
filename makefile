@@ -20,7 +20,7 @@ $(PROGRAM): $(OBJS)
 
 # Generate dependence files
 $(BUILD_DIR)/%.d: $(SRC_DIR)/%.c $(BUILD_DIR)
-	$(CC) $(DEP_OPT) $< | sed -E 's;^(.*)\.o:;$(BUILD_DIR)/\1.o:;' > $@
+	$(CC) $(CFLAGS) $(DEP_OPT) $< | sed -E 's;^(.*)\.o:;$(BUILD_DIR)/\1.o:;' > $@
 
 # Generate objects files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c

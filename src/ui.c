@@ -46,4 +46,5 @@ void ui_init(struct UI* ui) {
   ui_menu_init(&ui->window_manager);
   menu_init(&ui->menu, &ui->window_manager);
   game_menu_init(&ui->game_menu);
+  manual_init(&ui->manual);
 }

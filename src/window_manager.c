@@ -3,11 +3,15 @@
 #include "util.h"
 
 
+#define WINDOW_MANAGER_WINDOW_WIDTH 31
+#define WINDOW_MANAGER_WINDOW_HEIGHT 15
+
+
 void window_manager_init(struct WindowManager* window_manager) {
   for (int i = 0; i < WINDOW_ID_MAX; i++) {
     window_manager->window[i] = newwin(0, 0, 0, 0);
-    window_manager->width[i] = 0;
-    window_manager->height[i] = 0;
+    window_manager->width[i] = WINDOW_MANAGER_WINDOW_WIDTH;
+    window_manager->height[i] = WINDOW_MANAGER_WINDOW_HEIGHT;
     window_manager->left[i] = 0;
     window_manager->top[i] = 0;
     window_manager->enable[i] = false;

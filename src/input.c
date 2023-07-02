@@ -68,6 +68,7 @@ void input_menu_update(struct Menu* menu, int input, struct Game* game) {
 void input_game_menu_update(
     int input,
     struct GameMenu* game_menu,
+    struct Manual* manual,
     struct Game* game
 ) {
   switch (input) {
@@ -93,6 +94,8 @@ void input_game_menu_update(
         case GAME_MENU_MANUAL:
           log_info("Opening manual.");
           game_menu->enabled = false;
+          manual_init(manual);
+          game_set_game_state(game, GAME_STATE_MANUAL);
           break;
         case GAME_MENU_QUIT:
           log_info("Quiting...");
@@ -132,6 +135,18 @@ void input_log_key_pressed(int input) {
 }
 
 
+void input_manual_update(struct Manual* manual, int input) {
+  switch (input) {
+    case KEY_DOWN:
+      manual_move_down(manual);
+      break;
+    case KEY_UP:
+      manual_move_up(manual);
+      break;
+  }
+}
+
+
 void input_update(struct Game* game, struct UI* ui) {
   int input = getch();
   input_log_key_pressed(input);
@@ -140,7 +155,7 @@ void input_update(struct Game* game, struct UI* ui) {
 
   if (game_menu_is_enabled(&ui->game_menu)) {
     log_info("Game menu is enabled.");
-    input_game_menu_update(input, &ui->game_menu, game);
+    input_game_menu_update(input, &ui->game_menu, &ui->manual, game);
   } else if (game_state == GAME_STATE_IN_GAME) {
     input_update_in_game(game, input);
     if (game_board_is_lost(game_board)) {
@@ -154,6 +169,8 @@ void input_update(struct Game* game, struct UI* ui) {
     game_menu_enable(&ui->game_menu);
   } else if (game_state == GAME_STATE_MENU) {
     input_menu_update(&ui->menu, input, game);
+  } else if (game_state == GAME_STATE_MANUAL) {
+    input_manual_update(&ui->manual, input);
   } else {
     log_fatal_f("Invalid game_state=%d", game_state);
   }

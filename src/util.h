@@ -6,6 +6,8 @@
 
 #define boolean_as_string(b) b ? "true" : "false"
 
+#define imin(a, b) a < b ? a : b
+#define imax(a, b) a < b ? b : a
 
 #endif
 

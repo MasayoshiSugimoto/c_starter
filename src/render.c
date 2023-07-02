@@ -6,6 +6,19 @@ void render_help_menu() {
 }
 
 
+void render_center_text(
+    struct WindowManager* window_manager,
+    enum WindowId window_id,
+    int y,
+    const char* text
+) {
+  WINDOW* window = window_manager_get_window(window_manager, window_id);
+  int width = window_manager_get_width(window_manager, window_id);
+  int left = width / 2 - strlen(text) / 2;
+  mvwaddstr(window, y, left, text);
+}
+
+
 void render_game_board(struct GameBoard* game_board, int left, int top) {
   int width = game_board->width;
   int height = game_board->height;
@@ -163,6 +176,28 @@ void render_game_over(
 }
 
 
+void render_manual(
+    struct Manual* manual,
+    struct WindowManager* window_manager,
+    struct Vector center
+) {
+  WINDOW* window = window_manager_setup_window(
+      window_manager,
+      WINDOW_ID_MANUAL,
+      center.x,
+      center.y
+  );
+
+  int height = window_manager_get_height(window_manager, WINDOW_ID_MANUAL) - 2;
+  if (height <= 0) return;
+  const char* page[height];
+  manual_get_page(manual, page, height);
+  for (int i = 0; i < height; i++) {
+    mvwaddstr(window, i+1, 1, page[i]);
+  }
+}
+
+
 void render(struct Vector center, struct UI* ui, struct Game* game) {
   enum GameState game_state = game->game_state;
   struct WindowManager* window_manager = &ui->window_manager;
@@ -194,6 +229,11 @@ void render(struct Vector center, struct UI* ui, struct Game* game) {
     move(0, 0);
   } else if (game_state == GAME_STATE_MENU) {
     render_menu(&ui->menu, window_manager, center);
+
+    curs_set(CURSOR_VISIBILITY_INVISIBLE);
+    move(0, 0);
+  } else if (game_state == GAME_STATE_MANUAL) {
+    render_manual(&ui->manual, window_manager, center);
 
     curs_set(CURSOR_VISIBILITY_INVISIBLE);
     move(0, 0);

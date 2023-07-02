@@ -8,6 +8,8 @@ const char* g_game_state_strings[] = {
   "GAME_STATE_GAME_OVER",
   "GAME_STATE_GAME_WON",
   "GAME_STATE_MENU",
+  "GAME_STATE_MANUAL",
+  "GAME_STATE_QUIT",
   "GAME_STATE_MAX"
 };
 
