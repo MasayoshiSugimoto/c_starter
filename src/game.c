@@ -4,6 +4,7 @@
 
 
 const char* g_game_state_strings[] = {
+  "GAME_STATE_START_MENU",
   "GAME_STATE_IN_GAME",
   "GAME_STATE_GAME_OVER",
   "GAME_STATE_GAME_WON",
@@ -19,7 +20,7 @@ void game_init(struct Game* game, int width, int height) {
   game->cursor.x = 0;
   game->cursor.y = 0;
   game_board_init(&game->game_board, width, height);
-  game->game_state = GAME_STATE_MENU;
+  game->game_state = GAME_STATE_START_MENU;
 }
 
 

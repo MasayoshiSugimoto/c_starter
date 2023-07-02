@@ -206,39 +206,46 @@ void render(struct Vector center, struct UI* ui, struct Game* game) {
   window_manager_erase(window_manager);
   render_help_menu();
 
-  if (game_menu_is_enabled(&ui->game_menu)) {
-    log_info("Game menu is enabled.");
-    render_game_menu(&ui->game_menu, window_manager, center.x, center.y);
+  switch (game_state) {
+    case GAME_STATE_START_MENU:
+      log_info("Game menu is enabled.");
+      render_game_menu(&ui->game_menu, window_manager, center.x, center.y);
 
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else if (game_state == GAME_STATE_IN_GAME) {
-    render_in_game(game, center);
-    curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
-  } else if (game_state == GAME_STATE_GAME_OVER) {
-    render_in_game(game, center);
-    render_game_over(window_manager, center);
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+      break;
+    case GAME_STATE_IN_GAME:
+      render_in_game(game, center);
+      curs_set(CURSOR_VISIBILITY_HIGH_VISIBILITY);
+      break;
+    case GAME_STATE_GAME_OVER:
+      render_in_game(game, center);
+      render_game_over(window_manager, center);
 
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else if (game_state == GAME_STATE_GAME_WON) {
-    render_in_game(game, center);
-    render_game_won(window_manager, center);
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+      break;
+    case GAME_STATE_GAME_WON:
+      render_in_game(game, center);
+      render_game_won(window_manager, center);
 
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else if (game_state == GAME_STATE_MENU) {
-    render_menu(&ui->menu, window_manager, center);
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+      break;
+    case GAME_STATE_MENU:
+      render_menu(&ui->menu, window_manager, center);
 
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else if (game_state == GAME_STATE_MANUAL) {
-    render_manual(&ui->manual, window_manager, center);
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+      break;
+    case GAME_STATE_MANUAL:
+      render_manual(&ui->manual, window_manager, center);
 
-    curs_set(CURSOR_VISIBILITY_INVISIBLE);
-    move(0, 0);
-  } else {
-    log_fatal_f("Invalid game_state: %d", game_state);
+      curs_set(CURSOR_VISIBILITY_INVISIBLE);
+      move(0, 0);
+      break;
+    default: 
+      log_fatal_f("Invalid game_state: %d", game_state);
   }
 
   refresh();

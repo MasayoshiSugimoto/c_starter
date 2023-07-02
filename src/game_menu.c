@@ -11,7 +11,6 @@ const char* g_menu_items[] = {
 
 void game_menu_init(struct GameMenu* game_menu) {
   game_menu->selected = 0;
-  game_menu->enabled = true;
 }
 
 
@@ -35,15 +34,5 @@ void game_menu_move_cursor_down(struct GameMenu* game_menu) {
 
 enum GameMenuCommand game_menu_get_selected(struct GameMenu* game_menu) {
   return game_menu->selected;
-}
-
-
-bool game_menu_is_enabled(struct GameMenu* game_menu) {
-  return game_menu->enabled;
-}
-
-
-void game_menu_enable(struct GameMenu* game_menu) {
-  game_menu->enabled = true;
 }
 

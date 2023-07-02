@@ -19,15 +19,12 @@ enum GameMenuCommand {
 
 struct GameMenu {
   enum GameMenuCommand selected;
-  bool enabled;
 };
 
 
 void game_menu_init(struct GameMenu* game_menu);
 void game_menu_move_cursor_up(struct GameMenu* game_menu);
 void game_menu_move_cursor_down(struct GameMenu* game_menu);
-bool game_menu_is_enabled(struct GameMenu* game_menu);
-void game_menu_enable(struct GameMenu* game_menu);
 
 
 #endif
