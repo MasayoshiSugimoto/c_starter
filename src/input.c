@@ -403,9 +403,6 @@ void input_manual_update(struct Manual* manual, int input, struct Game* game) {
     case KEY_UP:
       manual_move_up(manual);
       break;
-    case KEY_ESC:  // Esc
-      game_set_game_state(game, GAME_STATE_START_MENU);
-      break;
   }
 }
 
@@ -417,6 +414,11 @@ void input_update(struct Game* game, struct UI* ui) {
   struct GameBoard* game_board = &game->game_board;
 
   game_print_state(game_state);
+
+  if (input == KEY_ESC) {
+    game_set_game_state(game, GAME_STATE_START_MENU);
+    return;
+  }
 
   switch (game_state) {
     case GAME_STATE_START_MENU:
