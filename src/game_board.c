@@ -207,3 +207,17 @@ void game_board_move_cursor(
   }
 }
 
+
+bool game_board_is_new(struct GameBoard* game_board) {
+  for (int i = 0; i < game_board_max_index(game_board); i++) {
+    if (game_board->visibility_map[i]) return false;
+  }
+  return true;
+}
+
+
+bool game_board_is_playing(struct GameBoard* game_board) {
+  return !game_board_is_win(game_board)
+    && !game_board_is_lost(game_board)
+    && !game_board_is_new(game_board);
+}

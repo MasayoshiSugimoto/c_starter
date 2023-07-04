@@ -4,6 +4,17 @@
 #define KEY_ESC 27
 
 
+void input_setup_start_menu(struct Game* game, struct ItemSelection* game_menu) {
+  struct GameBoard* game_board = &game->game_board;
+  game_set_game_state(game, GAME_STATE_START_MENU);
+  if (game_board_is_playing(game_board)) {
+    game_menu_init_in_game(game_menu);
+  } else {
+    game_menu_init_new_game(game_menu);
+  }
+}
+
+
 void input_update_in_game(struct Game* game, int input) {
   struct GameBoard* game_board = &game->game_board;
   struct Cursor* cursor = &game->cursor;
@@ -70,22 +81,22 @@ void input_menu_update(struct Menu* menu, int input, struct Game* game) {
 
 void input_game_menu_update(
     int input,
-    struct GameMenu* game_menu,
+    struct ItemSelection* game_menu,
     struct Manual* manual,
     struct Game* game
 ) {
   switch (input) {
     case KEY_DOWN:
-      game_menu_move_cursor_down(game_menu);
+      item_selection_move_cursor_down(game_menu);
       break;
     case KEY_UP:
-      game_menu_move_cursor_up(game_menu);
+      item_selection_move_cursor_up(game_menu);
       break;
     case KEY_RESIZE:
     case KEY_ESC:
       break;
     default:
-      switch (game_menu->selected) {
+      switch (item_selection_get_selection(game_menu)) {
         case GAME_MENU_RESUME:
           log_info("Resuming game.");
           game_set_game_state(game, GAME_STATE_IN_GAME);
@@ -104,7 +115,7 @@ void input_game_menu_update(
           game_set_game_state(game, GAME_STATE_QUIT);
           break;
         default:
-          log_fatal_f("Invalid menu selection: %d", game_menu->selected);
+          log_fatal_f("Invalid menu selection: %d", item_selection_get_selection(game_menu));
       }
   }
 }
@@ -411,12 +422,11 @@ void input_update(struct Game* game, struct UI* ui) {
   int input = getch();
   input_log_key_pressed(input);
   enum GameState game_state = game->game_state;
-  struct GameBoard* game_board = &game->game_board;
 
   game_print_state(game_state);
 
   if (input == KEY_ESC) {
-    game_set_game_state(game, GAME_STATE_START_MENU);
+    input_setup_start_menu(game, &ui->game_menu);
     return;
   }
 
@@ -426,17 +436,12 @@ void input_update(struct Game* game, struct UI* ui) {
       break;
     case GAME_STATE_IN_GAME:
       input_update_in_game(game, input);
-      if (game_board_is_lost(game_board)) {
-        game_set_game_state(game, GAME_STATE_GAME_OVER);
-      } else if (game_board_is_win(game_board)) {
-        game_set_game_state(game, GAME_STATE_GAME_WON);
-      }
       break;
     case GAME_STATE_GAME_OVER:
-      game_set_game_state(game, GAME_STATE_START_MENU);
+      input_setup_start_menu(game, &ui->game_menu);
       break;
     case GAME_STATE_GAME_WON:
-      game_set_game_state(game, GAME_STATE_START_MENU);
+      input_setup_start_menu(game, &ui->game_menu);
       break;
     case GAME_STATE_MENU:
       input_menu_update(&ui->menu, input, game);

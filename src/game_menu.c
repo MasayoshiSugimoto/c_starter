@@ -9,30 +9,23 @@ const char* g_menu_items[] = {
 };
 
 
-void game_menu_init(struct GameMenu* game_menu) {
-  game_menu->selected = 0;
+const int new_game_items[] = {1, 2, 3};
+const int in_game_items[] = {0, 1, 2, 3};
+
+
+void game_menu_init_new_game(struct ItemSelection* item_selection) {
+  item_selection_init(
+      item_selection,
+      new_game_items,
+      array_size(new_game_items)
+  );
 }
 
 
-void game_menu_move_cursor_up(struct GameMenu* game_menu) {
-  log_info("Move cursor up.");
-  int length = array_size(g_menu_items);
-  int selected = game_menu->selected - 1;
-  if (selected < 0) selected = length - 1;
-  log_info_f("selected=%s", g_menu_items[selected]);
-  game_menu->selected = selected;
+void game_menu_init_in_game(struct ItemSelection* item_selection) {
+  item_selection_init(
+      item_selection,
+      in_game_items,
+      array_size(in_game_items)
+  );
 }
-
-
-void game_menu_move_cursor_down(struct GameMenu* game_menu) {
-  log_info("Move cursor down.");
-  int length = array_size(g_menu_items);
-  game_menu->selected = (game_menu->selected + 1) % length;
-  log_info_f("selected=%s", g_menu_items[game_menu->selected]);
-}
-
-
-enum GameMenuCommand game_menu_get_selected(struct GameMenu* game_menu) {
-  return game_menu->selected;
-}
-

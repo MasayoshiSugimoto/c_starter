@@ -87,7 +87,8 @@ void render_in_game(struct Game* game, struct Vector center) {
 
 
 void render_game_menu(
-    struct GameMenu* game_menu,
+    struct ItemSelection* game_menu,
+    struct GameBoard* game_board,
     struct WindowManager* window_manager,
     int center_x,
     int center_y
@@ -109,13 +110,15 @@ void render_game_menu(
   text_x = 12;
   text_y += 3;
   int space_y = 2;
-  mvwaddstr(window, text_y, text_x, "Resume");
-  mvwaddstr(window, text_y + space_y, text_x, "New Game");
+  if (game_board_is_playing(game_board)) {
+    mvwaddstr(window, text_y + space_y * 0, text_x, "Resume");
+  }
+  mvwaddstr(window, text_y + space_y * 1, text_x, "New Game");
   mvwaddstr(window, text_y + space_y * 2, text_x, "Manual");
   mvwaddstr(window, text_y + space_y * 3, text_x, "Quit");
 
   // Render cursor.
-  mvwaddch(window, text_y + (game_menu->selected * space_y), 9, '>');
+  mvwaddch(window, text_y + (item_selection_get_selection(game_menu) * space_y), 9, '>');
 }
 
 
@@ -209,7 +212,13 @@ void render(struct Vector center, struct UI* ui, struct Game* game) {
   switch (game_state) {
     case GAME_STATE_START_MENU:
       log_info("Game menu is enabled.");
-      render_game_menu(&ui->game_menu, window_manager, center.x, center.y);
+      render_game_menu(
+          &ui->game_menu,
+          &game->game_board,
+          window_manager,
+          center.x,
+          center.y
+      );
 
       curs_set(CURSOR_VISIBILITY_INVISIBLE);
       move(0, 0);

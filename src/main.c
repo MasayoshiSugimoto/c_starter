@@ -24,6 +24,17 @@ struct UI ui;
 struct Game game;
 
 
+void main_update_game(struct Game* game) {
+  if (game->game_state == GAME_STATE_IN_GAME) {
+    if (game_board_is_lost(&game->game_board)) {
+      game_set_game_state(game, GAME_STATE_GAME_OVER);
+    } else if (game_board_is_win(&game->game_board)) {
+      game_set_game_state(game, GAME_STATE_GAME_WON);
+    }
+  }
+}
+
+
 int main() {
   log_init();
   srand(time(NULL));
@@ -64,6 +75,8 @@ int main() {
     if (game.game_state == GAME_STATE_QUIT) {
       break;
     }
+
+    main_update_game(&game);
   }
 
   endwin();  // End ncurses.

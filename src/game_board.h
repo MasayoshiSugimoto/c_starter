@@ -43,6 +43,7 @@ void game_board_show_all(struct GameBoard* game_board);
 bool game_board_is_win(struct GameBoard* game_board);
 bool game_board_is_lost(struct GameBoard* game_board);
 int game_board_get_index(struct GameBoard* game_board, int x, int y);
+bool game_board_is_playing(struct GameBoard* game_board);
 
 
 #endif

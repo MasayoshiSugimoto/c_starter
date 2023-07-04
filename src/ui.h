@@ -14,7 +14,7 @@
  */
 struct UI {
   struct Menu menu;
-  struct GameMenu game_menu;
+  struct ItemSelection game_menu;
   struct WindowManager window_manager;
   struct Terminal terminal;
   struct Manual manual;

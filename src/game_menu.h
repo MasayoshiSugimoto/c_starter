@@ -6,6 +6,7 @@
 #include "window_manager.h"
 #include "log.h"
 #include "game.h"
+#include "item_selection.h"
 
 
 enum GameMenuCommand {
@@ -18,13 +19,12 @@ enum GameMenuCommand {
 
 
 struct GameMenu {
-  enum GameMenuCommand selected;
+  struct ItemSelection item_selection;
 };
 
 
-void game_menu_init(struct GameMenu* game_menu);
-void game_menu_move_cursor_up(struct GameMenu* game_menu);
-void game_menu_move_cursor_down(struct GameMenu* game_menu);
+void game_menu_init_new_game(struct ItemSelection* item_selection);
+void game_menu_init_in_game(struct ItemSelection* item_selection);
 
 
 #endif
